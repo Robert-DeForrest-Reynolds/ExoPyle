@@ -58,7 +58,6 @@ while Alive:
         if Event.type == pygame.QUIT:
             Alive = False
         if Event.type == pygame.KEYDOWN:
-            print(Event)
             if Event.unicode == "":
                 if Event.key == pygame.K_LEFT:
                     if (Cursor.Index - 1) >= 0:
