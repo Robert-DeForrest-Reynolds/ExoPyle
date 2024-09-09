@@ -7,8 +7,39 @@ from raylibpy import *
 from os import listdir as List_Directory
 from sys import exit as Exit
 
+# Here's a bit of notes #
+# A function should return None|str if error handling is necssary
+
+
 # API Related Functions #
 def Set_Background_Color(): Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
+
+
+def Insert_Content_Constructor(ContentKey, ContentConstructor):
+    ContentConstructors.update({ContentKey:ContentConstructor})
+
+
+def Remove_Content_Constructor(ContentKey):
+    ContentConstructors.pop(ContentKey)
+
+
+def Toggle_Editor():
+    if WindowSettings["EditorExposed"] == False:
+        WindowSettings["EditorExposed"] = True
+        Insert_Content_Constructor("Editor", [Build_Editor, "FailFast"])
+    else:
+        WindowSettings["EditorExposed"] = False
+        Remove_Content_Constructor("Editor")
+        
+
+
+def Build_Editor() -> None | str:
+    EditorX, EditorY =  WindowSettings["NaturalPadding"]/2, WindowSettings["NaturalPadding"]/2
+    EditorWidth = Resolution["Width"] - WindowSettings["NaturalPadding"]
+    EditorHeight = Resolution["Height"] - WindowSettings["NaturalPadding"]
+    EditorRectangle = Rectangle(EditorX, EditorY,
+                                EditorWidth, EditorHeight)
+    draw_rectangle_rounded_lines(EditorRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
 
 
 # Technically all of these are usable within in ExoFyle config files, and I'm not saying you should or shouldn', but uh, let's consider this a hazard sign#
@@ -26,7 +57,6 @@ def Load_All_Packages():
             exec(Instructions)
 
 
-
 def Is_Legal_Script(UserInstruction:str) -> bool:
     for Instruction in InvalidInstructions:
         if Instruction in UserInstruction:
@@ -38,7 +68,13 @@ def Is_Legal_Script(UserInstruction:str) -> bool:
 def Build_Frame():
     begin_drawing()
     clear_background(Background["Color"])
+    Boolean:bool = True
+    Function: function
+    for ContentConstructor, FailType in ContentConstructors.values():
+        Boolean = Handle_Error(ContentConstructor(), FailType)
+        if Boolean == False:return Boolean
     end_drawing()
+    return Boolean
 
 
 def Initialize():
@@ -76,7 +112,7 @@ def Handle_Control_Flow() -> bool:
 
 def Handle_Error(FunctionReturn, FunctionFailType) -> bool:
     try:
-        if FunctionReturn != None:
+        if type(FunctionReturn) == None:
             print(f"ERROR: {FunctionReturn}")
             if FunctionFailType == "FailFast":
                 Exit()
@@ -121,6 +157,8 @@ Background.update({
 WindowSettings = {
     "Title": "ExoFyle",
     "FPS": 60,
+    "NaturalPadding":5,
+    "EditorExposed":False,
 }
 KeyChords = {
     "Leader": KEY_SPACE
@@ -128,11 +166,14 @@ KeyChords = {
 InputTree = [
     [KEY_R, Load_All_Packages, KeyChords["Leader"]],
     [KEY_Q, Exit, KeyChords["Leader"]],
+    [KEY_E, lambda: Toggle_Editor(), None]
 ]
+ContentConstructors = {
+    
+}
 ControlFlow = [
     [Build_Frame, "FailSafe"],
     [Handle_Input, "FailSafe"],
 ]
-
 if __name__ == '__main__':
     Entry()
