@@ -47,7 +47,6 @@ def Initialize():
     Load_All_Packages()
     init_window(Resolution["Width"], Resolution["Height"], WindowSettings["Title"])
     set_target_fps(WindowSettings["FPS"])
-    return "Fuck"
 
 
 def Cleanup():
@@ -79,8 +78,8 @@ def Handle_Error(FunctionReturn, FunctionFailType) -> bool:
     try:
         if FunctionReturn != None:
             print(f"ERROR: {FunctionReturn}")
-        if FunctionFailType == "FailFast":
-            Exit()
+            if FunctionFailType == "FailFast":
+                Exit()
         return True
     except Exception as SomeException:
         print(f"Yo, I don't know even know what you broke:\n{SomeException}")
