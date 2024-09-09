@@ -4,10 +4,8 @@
 
 from raylibpy import *
 
-from os import listdir
+from os import listdir as List_Directory
 from sys import exit as Exit
-
-IsDeveloper = True
 
 # API Related Functions #
 def Set_Background_Color(): Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
@@ -18,7 +16,7 @@ def Load_All_Packages():
     # TO DO: yo, we can't allow for anyone to import anything else.
     # I think that will be the easiest way to secure the api up front, and then I'll implement more along the way.
     print("Loading Packages")
-    for PackageFile in listdir("Packages"):
+    for PackageFile in List_Directory("Packages"):
         with open("Packages/" + PackageFile, 'r') as PackageFile:
             PackageFileInstructions = [Line for Line in PackageFile.readlines()]
             ScriptContent = [Instruction for Instruction in PackageFileInstructions]
@@ -43,7 +41,23 @@ def Build_Frame():
     end_drawing()
 
 
+def Initialize():
+    print("Welcome to the thunderdome bitches.")
+    Set_Background_Color()
+    Load_All_Packages()
+    init_window(Resolution["Width"], Resolution["Height"], WindowSettings["Title"])
+    set_target_fps(WindowSettings["FPS"])
+    return "Fuck"
+
+
+def Cleanup():
+    close_window()
+
+
 def Handle_Input() -> None | str:
+    Key: int
+    Function:function
+    KeyChord:int
     for Key, Function, KeyChord in InputTree:
         if is_key_pressed(Key):
             if KeyChord != None:
@@ -53,14 +67,31 @@ def Handle_Input() -> None | str:
 
 
 def Handle_Control_Flow() -> bool:
+    Boolean:bool = True
     Function: function
     for Function, FailType in ControlFlow:
-        Error:None|str = Function()
-        if Error != None:
-            print(f"ERROR: {Error}")
-        if FailType == "FailFast":
-            return False
-    return True
+        Boolean = Handle_Error(Function(), FailType)
+        if Boolean == False:return Boolean
+    return Boolean
+
+
+def Handle_Error(FunctionReturn, FunctionFailType) -> bool:
+    try:
+        if FunctionReturn != None:
+            print(f"ERROR: {FunctionReturn}")
+        if FunctionFailType == "FailFast":
+            Exit()
+        return True
+    except Exception as SomeException:
+        print(f"Yo, I don't know even know what you broke:\n{SomeException}")
+        return False
+
+
+def Entry():
+    Handle_Error(Initialize(), "FailFast")
+    while not window_should_close():
+        if Handle_Control_Flow() == False: break
+    Handle_Error(Cleanup(), "FailFast")
 
 
 # These are not top level variables, they are configurations
@@ -104,21 +135,6 @@ ControlFlow = [
     [Build_Frame, "FailSafe"],
     [Handle_Input, "FailSafe"],
 ]
-
-
-def Entry():
-    print("Welcome to the thunderdome bitches.")
-    Set_Background_Color()
-    init_window(Resolution["Width"], Resolution["Height"], WindowSettings["Title"])
-    set_target_fps(WindowSettings["FPS"])
-    Load_All_Packages()
-
-    while not window_should_close():
-        if Handle_Control_Flow() == False:
-            break
-
-    close_window()
-
 
 if __name__ == '__main__':
     Entry()
