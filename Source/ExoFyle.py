@@ -32,13 +32,12 @@ def Toggle_Editor():
         Remove_Content_Constructor("Editor")
         
 
-
 def Build_Editor() -> None | str:
-    EditorX, EditorY =  WindowSettings["NaturalPadding"]/2, WindowSettings["NaturalPadding"]/2
-    EditorWidth = Resolution["Width"] - WindowSettings["NaturalPadding"]
-    EditorHeight = Resolution["Height"] - WindowSettings["NaturalPadding"]
-    EditorRectangle = Rectangle(EditorX, EditorY,
-                                EditorWidth, EditorHeight)
+    EditorRectangle = Rectangle(Editor["X"], Editor["Y"], Editor["Width"], Editor["Height"])
+    LineSpace = 10
+    for Line in Editor["Content"]:
+        draw_text(Line, 10, LineSpace, 20, RAYWHITE)
+        LineSpace += 20
     draw_rectangle_rounded_lines(EditorRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
 
 
@@ -176,5 +175,12 @@ ControlFlow = [
     [Build_Frame, "FailSafe"],
     [Handle_Input, "FailSafe"],
 ]
+Editor = {
+    "Content": [],
+    "X": WindowSettings["NaturalPadding"]/2,
+    "Y":  WindowSettings["NaturalPadding"]/2,
+    "Width": Resolution["Width"] - WindowSettings["NaturalPadding"],
+    "Height": Resolution["Height"] - WindowSettings["NaturalPadding"],
+}
 if __name__ == '__main__':
     Entry()
