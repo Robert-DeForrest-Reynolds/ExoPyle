@@ -1,0 +1,1 @@
+.venv\Scripts\activate & py -B Source/ExoFyle.py

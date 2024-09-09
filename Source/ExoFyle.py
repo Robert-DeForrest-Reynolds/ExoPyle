@@ -7,6 +7,34 @@ from raylibpy import *
 from os import listdir
 from sys import exit as Exit
 
+IsDeveloper = True
+
+# API Related Functions #
+def Set_Background_Color(): Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
+
+
+# Technically all of these are usable within in ExoFyle config files, and I'm not saying you should or shouldn', but uh, let's consider this a hazard sign#
+def Load_All_Packages():
+    print("Loading Packages")
+    for PackageFile in listdir("Packages"):
+        with open("Packages/" + PackageFile, 'r') as PackageFile:
+            PackageFileInstructions = [Line for Line in PackageFile.readlines()]
+            ScriptContent = [Instruction for Instruction in PackageFileInstructions]
+            Instructions = "\n".join(ScriptContent).replace("from Source.ExoFyle import *\n", "")
+            if Is_Legal_Script(Instructions) == False:
+                return
+            exec(Instructions)
+
+
+
+def Is_Legal_Script(UserInstruction:str) -> bool:
+    for Instruction in InvalidInstructions:
+        if Instruction in UserInstruction:
+            return False
+    return True
+
+
+# These are not top level variables, they are configurations
 InvalidInstructions = [
     "Entry()",
     "Exit()",
@@ -36,25 +64,9 @@ WindowSettings = {
     "Title": "ExoFyle",
     "FPS": 60,
 }
-
-# API Related Functions #
-def Set_Background_Color(): Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
-
-
-# Technically all of these are usable within in ExoFyle config files, and I'm not saying you should or shouldn', but uh, let's consider this a hazard sign#
-def Load_All_Packages():
-    for PackageFile in listdir("Source/PackageExamples"):
-        with open("Source/PackageExamples/" + PackageFile, 'r') as PackageFile:
-            PackageFileInstructions = [Line.strip() for Line in PackageFile.readlines()]
-            Instructions = [Instruction for Instruction in PackageFileInstructions if Is_Valid_Instruction(Instruction) == True]
-            for Instruction in Instructions: exec(Instruction)
-
-
-def Is_Valid_Instruction(UserInstruction:str) -> bool:
-    for Instruction in InvalidInstructions:
-        if Instruction in UserInstruction:
-            return False
-    return True
+Inputs = {
+    KEY_R: Load_All_Packages,
+}
 
 
 def Entry():
@@ -66,8 +78,10 @@ def Entry():
 
     while not window_should_close():
         begin_drawing()
-        if is_key_down(KEY_R):
-            Load_All_Packages()
+        for Key in Inputs.keys():
+            if is_key_pressed(Key):
+                print("Pressed Key")
+                Inputs[Key]()
         clear_background(Background["Color"])
         end_drawing()
 
