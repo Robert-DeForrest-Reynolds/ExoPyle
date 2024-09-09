@@ -69,7 +69,7 @@ def Build_Frame():
     begin_drawing()
     clear_background(Background["Color"])
     Boolean:bool = True
-    Function: function
+    ContentConstructor: function
     for ContentConstructor, FailType in ContentConstructors.values():
         Boolean = Handle_Error(ContentConstructor(), FailType)
         if Boolean == False:return Boolean
@@ -78,6 +78,7 @@ def Build_Frame():
 
 
 def Initialize():
+    set_trace_log_level(LOG_ERROR)
     print("Welcome to the thunderdome bitches.")
     Set_Background_Color()
     Load_All_Packages()
