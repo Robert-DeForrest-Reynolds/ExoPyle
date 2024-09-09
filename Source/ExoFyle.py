@@ -98,7 +98,6 @@ InvalidInstructions = [
     "Entry()",
     "Exit()",
 ]
-
 Resolution = {
     "Width":800,
     "Height":600,
