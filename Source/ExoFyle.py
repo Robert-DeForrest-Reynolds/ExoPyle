@@ -48,11 +48,11 @@ def Set_Background_Color() -> None:
 #(_____)                          (_____)
 
 # A Content Constructor is just a GUI implement
-def Insert_Content_Constructor(ContentKey:str, ContentConstructor) -> None:
+def Insert_Content_Constructor(ContentKey:str, ContentConstructor) -> None | str:
     ContentConstructors.update({ContentKey:ContentConstructor})
 
 
-def Remove_Content_Constructor(ContentKey:str) -> None:
+def Remove_Content_Constructor(ContentKey:str) -> None | str:
     ContentConstructors.pop(ContentKey)
 
 
@@ -63,27 +63,28 @@ def Build_Editor() -> None | str:
         draw_text(Line, 10, LineSpace, 20, RAYWHITE)
         LineSpace += 20
     draw_rectangle_rounded_lines(EditorRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
+    return None
 
 
-def Toggle_Editor():
+def Toggle_Editor() -> None | str:
     if WindowSettings["EditorExposed"] == False:
         WindowSettings["EditorExposed"] = True
         Insert_Content_Constructor("Editor", [Build_Editor, "FailFast"])
     else:
         WindowSettings["EditorExposed"] = False
         Remove_Content_Constructor("Editor")
+    return None
 
 
-def Build_Frame():
+def Build_Frame() -> None | str:
     begin_drawing()
     clear_background(Background["Color"])
-    Boolean:bool = True
     ContentConstructor: function
     for ContentConstructor, FailType in ContentConstructors.values():
-        Boolean = Handle_Error(ContentConstructor(), FailType)
-        if Boolean == False:return Boolean
+        if Handle_Error(ContentConstructor(), FailType) == False:
+            return "Failed to build frame because of broken content constructor."
     end_drawing()
-    return Boolean
+    return None
 
 # _____                                                                               _____ 
 #( ___ )                                                                             ( ___ )
@@ -100,16 +101,16 @@ def Build_Frame():
 # |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
 #(_____)                                                                             (_____)
 
-def Load_All_Packages():
+def Load_All_Packages() -> None | str:
     print("Loading Packages")
     for PackageFile in List_Directory("Packages"):
         with open("Packages/" + PackageFile, 'r') as PackageFile:
             PackageFileInstructions = [Line for Line in PackageFile.readlines()]
             ScriptContent = [Instruction for Instruction in PackageFileInstructions]
             Instructions = "\n".join(ScriptContent).replace("from Source.ExoFyle import *\n", "")
-            if Is_Legal_Script(Instructions) == False:
-                return
-            exec(Instructions)
+            if Handle_Error(Is_Legal_Script(Instructions)) == False:
+                exec(Instructions)
+    return None
 
 
 # _____                                         _____ 
@@ -139,9 +140,9 @@ def Handle_Input() -> None | str:
             Function()
 
 
-def Handle_Error(FunctionReturn, FunctionFailType) -> bool:
+def Handle_Error(FunctionSignature, FunctionReturn, FunctionFailType) -> bool:
     try:
-        if type(FunctionReturn) == None:
+        if FunctionReturn is not None:
             print(f"ERROR: {FunctionReturn}")
             if FunctionFailType == "FailFast":
                 Exit()
@@ -151,11 +152,11 @@ def Handle_Error(FunctionReturn, FunctionFailType) -> bool:
         return False
 
 
-def Is_Legal_Script(UserInstruction:str) -> bool:
+def Is_Legal_Script(UserInstruction:str) -> None | str:
     for Instruction in InvalidInstructions:
         if Instruction in UserInstruction:
-            return False
-    return True
+            return "Illegal Script"
+    return None
 
 
 # _____                                                                                                               _____ 
@@ -173,33 +174,36 @@ def Is_Legal_Script(UserInstruction:str) -> bool:
 # |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
 #(_____)                                                                                                             (_____)
 
-def Handle_Control_Flow() -> bool:
+def Handle_Control_Flow() -> None | str:
     Boolean:bool = True
     Function: function
     for Function, FailType in ControlFlow:
-        Boolean = Handle_Error(Function(), FailType)
-        if Boolean == False:return Boolean
-    return Boolean
+        Boolean = Handle_Error(Function, Function(), FailType)
+        if Boolean == False:
+            return f"Control flow interrupted by {Function} error"
+    return None
 
 
-def Initialize():
+def Initialize() -> None | str:
     set_trace_log_level(LOG_ERROR)
     print("Welcome to the thunderdome bitches.")
     Set_Background_Color()
     Load_All_Packages()
     init_window(Resolution["Width"], Resolution["Height"], WindowSettings["Title"])
     set_target_fps(WindowSettings["FPS"])
+    return None
 
 
-def Cleanup():
+def Cleanup() -> None | str:
     close_window()
 
 
 def Entry():
-    Handle_Error(Initialize(), "FailFast")
+    Handle_Error(Initialize, Initialize(), "FailFast")
     while not window_should_close():
-        if Handle_Control_Flow() == False: break
-    Handle_Error(Cleanup(), "FailFast")
+        if Handle_Error(Handle_Control_Flow()) == False:
+            break
+    Handle_Error(Cleanup, Cleanup(), "FailFast")
 
 
 #  _____                                                       _____ 
