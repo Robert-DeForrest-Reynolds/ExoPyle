@@ -4,22 +4,54 @@
 
 from raylibpy import *
 
+from typing import List
 from os import listdir as List_Directory
 from sys import exit as Exit
 
 # Here's a bit of notes #
 # A function should return None|str if error handling is necssary
+# Banner Font Type: 
 
 
-# API Related Functions #
-def Set_Background_Color(): Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
+# _____                            _____ 
+#( ___ )                          ( ___ )
+# |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
+# |   |                            |   | 
+# |   |     ###    ########  ####  |   | 
+# |   |    ## ##   ##     ##  ##   |   | 
+# |   |   ##   ##  ##     ##  ##   |   | 
+# |   |  ##     ## ########   ##   |   | 
+# |   |  ######### ##         ##   |   | 
+# |   |  ##     ## ##         ##   |   | 
+# |   |  ##     ## ##        ####  |   | 
+# |   |                            |   | 
+# |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
+#(_____)                          (_____)
+# These Are Mostly For Quality of Life, and Ease of Use #
+
+def Set_Background_Color() -> None:
+    Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
 
 
-def Insert_Content_Constructor(ContentKey, ContentConstructor):
+# _____                            _____ 
+#( ___ )                          ( ___ )
+# |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
+# |   |                            |   | 
+# |   |   ######   ##     ## ####  |   | 
+# |   |  ##    ##  ##     ##  ##   |   | 
+# |   |  ##        ##     ##  ##   |   | 
+# |   |  ##   #### ##     ##  ##   |   | 
+# |   |  ##    ##  ##     ##  ##   |   | 
+# |   |  ##    ##  ##     ##  ##   |   | 
+# |   |   ######    #######  ####  |   | 
+# |   |                            |   | 
+# |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
+#(_____)                          (_____)
+# A Content Constructor is just a GUI implement
+def Insert_Content_Constructor(ContentKey:str, ContentConstructor) -> None:
     ContentConstructors.update({ContentKey:ContentConstructor})
 
-
-def Remove_Content_Constructor(ContentKey):
+def Remove_Content_Constructor(ContentKey:str) -> None:
     ContentConstructors.pop(ContentKey)
 
 
@@ -29,8 +61,7 @@ def Toggle_Editor():
         Insert_Content_Constructor("Editor", [Build_Editor, "FailFast"])
     else:
         WindowSettings["EditorExposed"] = False
-        Remove_Content_Constructor("Editor")
-        
+        Remove_Content_Constructor("Editor")        
 
 def Build_Editor() -> None | str:
     EditorRectangle = Rectangle(Editor["X"], Editor["Y"], Editor["Width"], Editor["Height"])
@@ -41,10 +72,32 @@ def Build_Editor() -> None | str:
     draw_rectangle_rounded_lines(EditorRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
 
 
-# Technically all of these are usable within in ExoFyle config files, and I'm not saying you should or shouldn', but uh, let's consider this a hazard sign#
+def Build_Frame():
+    begin_drawing()
+    clear_background(Background["Color"])
+    Boolean:bool = True
+    ContentConstructor: function
+    for ContentConstructor, FailType in ContentConstructors.values():
+        Boolean = Handle_Error(ContentConstructor(), FailType)
+        if Boolean == False:return Boolean
+    end_drawing()
+    return Boolean
+
+# _____                                                                               _____ 
+#( ___ )                                                                             ( ___ )
+# |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
+# |   |                                                                               |   | 
+# |   |  ########     ###     ######  ##    ##    ###     ######   ########  ######   |   | 
+# |   |  ##     ##   ## ##   ##    ## ##   ##    ## ##   ##    ##  ##       ##    ##  |   | 
+# |   |  ##     ##  ##   ##  ##       ##  ##    ##   ##  ##        ##       ##        |   | 
+# |   |  ########  ##     ## ##       #####    ##     ## ##   #### ######    ######   |   | 
+# |   |  ##        ######### ##       ##  ##   ######### ##    ##  ##             ##  |   | 
+# |   |  ##        ##     ## ##    ## ##   ##  ##     ## ##    ##  ##       ##    ##  |   | 
+# |   |  ##        ##     ##  ######  ##    ## ##     ##  ######   ########  ######   |   | 
+# |   |                                                                               |   | 
+# |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
+#(_____)                                                                             (_____)
 def Load_All_Packages():
-    # TO DO: yo, we can't allow for anyone to import anything else.
-    # I think that will be the easiest way to secure the api up front, and then I'll implement more along the way.
     print("Loading Packages")
     for PackageFile in List_Directory("Packages"):
         with open("Packages/" + PackageFile, 'r') as PackageFile:
@@ -55,6 +108,43 @@ def Load_All_Packages():
                 return
             exec(Instructions)
 
+# _____                                         _____ 
+#( ___ )                                       ( ___ )
+# |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
+# |   |                                         |   | 
+# |   |   ######   #######  ########  ########  |   | 
+# |   |  ##    ## ##     ## ##     ## ##        |   | 
+# |   |  ##       ##     ## ##     ## ##        |   | 
+# |   |  ##       ##     ## ########  ######    |   | 
+# |   |  ##       ##     ## ##   ##   ##        |   | 
+# |   |  ##    ## ##     ## ##    ##  ##        |   | 
+# |   |   ######   #######  ##     ## ########  |   | 
+# |   |                                         |   | 
+# |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
+#(_____)                                       (_____)
+def Handle_Input() -> None | str:
+    Key: int
+    Function:function
+    KeyChord:int
+    for Key, Function, KeyChord in InputTree:
+        if is_key_pressed(Key):
+            if KeyChord != None:
+                if is_key_down(KeyChord) == False:
+                    return f"Command Requires KeyChord {KeyChord}"
+            Function()
+
+
+def Handle_Error(FunctionReturn, FunctionFailType) -> bool:
+    try:
+        if type(FunctionReturn) == None:
+            print(f"ERROR: {FunctionReturn}")
+            if FunctionFailType == "FailFast":
+                Exit()
+        return True
+    except Exception as SomeException:
+        print(f"Yo, I don't know even know what you broke:\n{SomeException}")
+        return False
+
 
 def Is_Legal_Script(UserInstruction:str) -> bool:
     for Instruction in InvalidInstructions:
@@ -63,16 +153,26 @@ def Is_Legal_Script(UserInstruction:str) -> bool:
     return True
 
 
-# We have to take into account the packages within the user's folder, and whatever changes they may make when live
-def Build_Frame():
-    begin_drawing()
-    clear_background(Background["Color"])
+# _____                                                                                                               _____ 
+#( ___ )                                                                                                             ( ___ )
+# |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
+# |   |                                                                                                               |   | 
+# |   |   ######   #######  ##    ## ######## ########   #######  ##          ######## ##        #######  ##      ##  |   | 
+# |   |  ##    ## ##     ## ###   ##    ##    ##     ## ##     ## ##          ##       ##       ##     ## ##  ##  ##  |   | 
+# |   |  ##       ##     ## ####  ##    ##    ##     ## ##     ## ##          ##       ##       ##     ## ##  ##  ##  |   | 
+# |   |  ##       ##     ## ## ## ##    ##    ########  ##     ## ##          ######   ##       ##     ## ##  ##  ##  |   | 
+# |   |  ##       ##     ## ##  ####    ##    ##   ##   ##     ## ##          ##       ##       ##     ## ##  ##  ##  |   | 
+# |   |  ##    ## ##     ## ##   ###    ##    ##    ##  ##     ## ##          ##       ##       ##     ## ##  ##  ##  |   | 
+# |   |   ######   #######  ##    ##    ##    ##     ##  #######  ########    ##       ########  #######   ###  ###   |   | 
+# |   |                                                                                                               |   | 
+# |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
+#(_____)                                                                                                             (_____)
+def Handle_Control_Flow() -> bool:
     Boolean:bool = True
-    ContentConstructor: function
-    for ContentConstructor, FailType in ContentConstructors.values():
-        Boolean = Handle_Error(ContentConstructor(), FailType)
+    Function: function
+    for Function, FailType in ControlFlow:
+        Boolean = Handle_Error(Function(), FailType)
         if Boolean == False:return Boolean
-    end_drawing()
     return Boolean
 
 
@@ -89,39 +189,6 @@ def Cleanup():
     close_window()
 
 
-def Handle_Input() -> None | str:
-    Key: int
-    Function:function
-    KeyChord:int
-    for Key, Function, KeyChord in InputTree:
-        if is_key_pressed(Key):
-            if KeyChord != None:
-                if is_key_down(KeyChord) == False:
-                    return f"Command Requires KeyChord {KeyChord}"
-            Function()
-
-
-def Handle_Control_Flow() -> bool:
-    Boolean:bool = True
-    Function: function
-    for Function, FailType in ControlFlow:
-        Boolean = Handle_Error(Function(), FailType)
-        if Boolean == False:return Boolean
-    return Boolean
-
-
-def Handle_Error(FunctionReturn, FunctionFailType) -> bool:
-    try:
-        if type(FunctionReturn) == None:
-            print(f"ERROR: {FunctionReturn}")
-            if FunctionFailType == "FailFast":
-                Exit()
-        return True
-    except Exception as SomeException:
-        print(f"Yo, I don't know even know what you broke:\n{SomeException}")
-        return False
-
-
 def Entry():
     Handle_Error(Initialize(), "FailFast")
     while not window_should_close():
@@ -129,7 +196,20 @@ def Entry():
     Handle_Error(Cleanup(), "FailFast")
 
 
-# These are not top level variables, they are configurations
+#  _____                                                       _____ 
+# ( ___ )                                                     ( ___ )
+#  |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
+#  |   |                                                       |   | 
+#  |   |   ######   #######  ##    ## ######## ####  ######    |   | 
+#  |   |  ##    ## ##     ## ###   ## ##        ##  ##    ##   |   | 
+#  |   |  ##       ##     ## ####  ## ##        ##  ##         |   | 
+#  |   |  ##       ##     ## ## ## ## ######    ##  ##   ####  |   | 
+#  |   |  ##       ##     ## ##  #### ##        ##  ##    ##   |   | 
+#  |   |  ##    ## ##     ## ##   ### ##        ##  ##    ##   |   | 
+#  |   |   ######   #######  ##    ## ##       ####  ######    |   | 
+#  |   |                                                       |   | 
+#  |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
+# (_____)                                                     (_____)
 InvalidInstructions = [
     "Entry()",
     "Exit()",
