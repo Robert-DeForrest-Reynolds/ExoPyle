@@ -4,13 +4,12 @@
 
 from raylibpy import *
 
-from typing import List
 from os import listdir as List_Directory
 from sys import exit as Exit
 
 # Here's a bit of notes #
 # A function should return None|str if error handling is necssary
-# Banner Font Type: 
+# Banner Font Type: Banner3 | I recommend: https://www.asciiart.eu/text-to-ascii-art
 
 
 # _____                            _____ 
@@ -27,8 +26,8 @@ from sys import exit as Exit
 # |   |                            |   | 
 # |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
 #(_____)                          (_____)
-# These Are Mostly For Quality of Life, and Ease of Use #
 
+# These Are Mostly For Quality of Life, and Ease of Use #
 def Set_Background_Color() -> None:
     Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
 
@@ -47,21 +46,15 @@ def Set_Background_Color() -> None:
 # |   |                            |   | 
 # |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
 #(_____)                          (_____)
+
 # A Content Constructor is just a GUI implement
 def Insert_Content_Constructor(ContentKey:str, ContentConstructor) -> None:
     ContentConstructors.update({ContentKey:ContentConstructor})
 
+
 def Remove_Content_Constructor(ContentKey:str) -> None:
     ContentConstructors.pop(ContentKey)
 
-
-def Toggle_Editor():
-    if WindowSettings["EditorExposed"] == False:
-        WindowSettings["EditorExposed"] = True
-        Insert_Content_Constructor("Editor", [Build_Editor, "FailFast"])
-    else:
-        WindowSettings["EditorExposed"] = False
-        Remove_Content_Constructor("Editor")        
 
 def Build_Editor() -> None | str:
     EditorRectangle = Rectangle(Editor["X"], Editor["Y"], Editor["Width"], Editor["Height"])
@@ -70,6 +63,15 @@ def Build_Editor() -> None | str:
         draw_text(Line, 10, LineSpace, 20, RAYWHITE)
         LineSpace += 20
     draw_rectangle_rounded_lines(EditorRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
+
+
+def Toggle_Editor():
+    if WindowSettings["EditorExposed"] == False:
+        WindowSettings["EditorExposed"] = True
+        Insert_Content_Constructor("Editor", [Build_Editor, "FailFast"])
+    else:
+        WindowSettings["EditorExposed"] = False
+        Remove_Content_Constructor("Editor")
 
 
 def Build_Frame():
@@ -97,6 +99,7 @@ def Build_Frame():
 # |   |                                                                               |   | 
 # |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
 #(_____)                                                                             (_____)
+
 def Load_All_Packages():
     print("Loading Packages")
     for PackageFile in List_Directory("Packages"):
@@ -107,6 +110,7 @@ def Load_All_Packages():
             if Is_Legal_Script(Instructions) == False:
                 return
             exec(Instructions)
+
 
 # _____                                         _____ 
 #( ___ )                                       ( ___ )
@@ -122,6 +126,7 @@ def Load_All_Packages():
 # |   |                                         |   | 
 # |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
 #(_____)                                       (_____)
+
 def Handle_Input() -> None | str:
     Key: int
     Function:function
@@ -167,6 +172,7 @@ def Is_Legal_Script(UserInstruction:str) -> bool:
 # |   |                                                                                                               |   | 
 # |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
 #(_____)                                                                                                             (_____)
+
 def Handle_Control_Flow() -> bool:
     Boolean:bool = True
     Function: function
@@ -210,6 +216,7 @@ def Entry():
 #  |   |                                                       |   | 
 #  |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
 # (_____)                                                     (_____)
+
 InvalidInstructions = [
     "Entry()",
     "Exit()",
