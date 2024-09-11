@@ -1,4 +1,4 @@
-from Source.ExoFyle import *
+from ExoFyle import *
 
 def HelloWorld():
     print("HelloWorld")

@@ -1,1 +1,1 @@
-.venv\Scripts\activate & py -B Source/ExoFyle.py
+.venv\Scripts\activate & py -B ExoFyle.py
