@@ -27,10 +27,19 @@ from sys import exit as Exit
 # |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
 #(_____)                          (_____)
 
+# API Begin #
 # These Are Mostly For Quality of Life, and Ease of Use #
-def Set_Background_Color() -> None:
+def Set_Background_Color():
     Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
 
+
+def Insert_Content_Constructor(ContentKey, ContentConstructor):
+    ContentConstructors.update({ContentKey:ContentConstructor})
+
+
+def Remove_Content_Constructor(ContentKey):
+    ContentConstructors.pop(ContentKey)
+# API End #
 
 # _____                            _____ 
 #( ___ )                          ( ___ )
@@ -48,12 +57,6 @@ def Set_Background_Color() -> None:
 #(_____)                          (_____)
 
 # A Content Constructor is just a GUI implement
-def Insert_Content_Constructor(ContentKey:str, ContentConstructor) -> None | str:
-    ContentConstructors.update({ContentKey:ContentConstructor})
-
-
-def Remove_Content_Constructor(ContentKey:str) -> None | str:
-    ContentConstructors.pop(ContentKey)
 
 
 def Build_Editor() -> None | str:
@@ -67,11 +70,12 @@ def Build_Editor() -> None | str:
 
 
 def Toggle_Editor() -> None | str:
-    if WindowSettings["EditorExposed"] == False:
-        WindowSettings["EditorExposed"] = True
+    if Application["CurrentState"] == Insert_Mode: return
+    if Editor["Exposed"] == False:
+        Editor["Exposed"] = True
         Insert_Content_Constructor("Editor", [Build_Editor, "FailFast"])
     else:
-        WindowSettings["EditorExposed"] = False
+        Editor["Exposed"] = False
         Remove_Content_Constructor("Editor")
     return None
 
@@ -79,12 +83,13 @@ def Toggle_Editor() -> None | str:
 def Build_Frame() -> None | str:
     begin_drawing()
     clear_background(Background["Color"])
-    ContentConstructor: function
+    FailType:str
     for ContentConstructor, FailType in ContentConstructors.values():
-        if Handle_Error(ContentConstructor(), FailType) == False:
+        if Handle_Error(ContentConstructor, ContentConstructor(), FailType) == False:
             return "Failed to build frame because of broken content constructor."
     end_drawing()
     return None
+
 
 # _____                                                                               _____ 
 #( ___ )                                                                             ( ___ )
@@ -108,8 +113,7 @@ def Load_All_Packages() -> None | str:
             PackageFileInstructions = [Line for Line in PackageFile.readlines()]
             ScriptContent = [Instruction for Instruction in PackageFileInstructions]
             Instructions = "\n".join(ScriptContent).replace("from Source.ExoFyle import *\n", "")
-            if Handle_Error(Is_Legal_Script(Instructions)) == False:
-                exec(Instructions)
+            if Handle_Error(Is_Legal_Script(Instructions)) == False: exec(Instructions)
     return None
 
 
@@ -128,22 +132,42 @@ def Load_All_Packages() -> None | str:
 # |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
 #(_____)                                       (_____)
 
-def Handle_Input() -> None | str:
+
+def Change_State(StateKey:int) -> None | str:
+    Application["CurrentState"] = StateMapping[StateKey]
+
+
+def Insert_Mode() -> None | str:
+    Key = Handle_Key_Press(InsertModeInputTree)
+    print(type(Key))
+    if type(Key) == int:
+        print(Key.encode())
+
+
+def Normal_Mode() -> None | str:
+    Handle_Key_Press(NormalModeInputTree)
+
+
+def Handle_Key_Press(InputTree) -> None | str | int:
     Key: int
-    Function:function
     KeyChord:int
     for Key, Function, KeyChord in InputTree:
         if is_key_pressed(Key):
             if KeyChord != None:
-                if is_key_down(KeyChord) == False:
-                    return f"Command Requires KeyChord {KeyChord}"
+                if is_key_down(KeyChord) == False: return f"Command Requires KeyChord {KeyChord}"
             Function()
+            return Key
+    return None
+
+
+def Handle_Input() -> None | str:
+    Application["CurrentState"]()
 
 
 def Handle_Error(FunctionSignature, FunctionReturn, FunctionFailType) -> bool:
     try:
         if FunctionReturn is not None:
-            print(f"ERROR: {FunctionReturn}")
+            print(f"Error from {FunctionSignature}: {FunctionReturn}")
             if FunctionFailType == "FailFast":
                 Exit()
         return True
@@ -154,8 +178,7 @@ def Handle_Error(FunctionSignature, FunctionReturn, FunctionFailType) -> bool:
 
 def Is_Legal_Script(UserInstruction:str) -> None | str:
     for Instruction in InvalidInstructions:
-        if Instruction in UserInstruction:
-            return "Illegal Script"
+        if Instruction in UserInstruction: return "Illegal Script"
     return None
 
 
@@ -189,8 +212,8 @@ def Initialize() -> None | str:
     print("Welcome to the thunderdome bitches.")
     Set_Background_Color()
     Load_All_Packages()
-    init_window(Resolution["Width"], Resolution["Height"], WindowSettings["Title"])
-    set_target_fps(WindowSettings["FPS"])
+    init_window(Resolution["Width"], Resolution["Height"], Window["Title"])
+    set_target_fps(Window["FPS"])
     return None
 
 
@@ -200,9 +223,8 @@ def Cleanup() -> None | str:
 
 def Entry():
     Handle_Error(Initialize, Initialize(), "FailFast")
-    while not window_should_close():
-        if Handle_Error(Handle_Control_Flow()) == False:
-            break
+    while Application["Alive"]:
+        if Handle_Error(Handle_Control_Flow, Handle_Control_Flow(), "FailSafe") == False: break
     Handle_Error(Cleanup, Cleanup(), "FailFast")
 
 
@@ -220,7 +242,7 @@ def Entry():
 #  |   |                                                       |   | 
 #  |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
 # (_____)                                                     (_____)
-
+# Config Begin #
 InvalidInstructions = [
     "Entry()",
     "Exit()",
@@ -245,33 +267,46 @@ Background.update({
     "Blue":Background["DefaultBlue"],
     "Green":Background["DefaultGreen"],
 })
-WindowSettings = {
+Application = {
+    "Alive":True,
+    "CurrentState":Normal_Mode,
+}
+Window = {
     "Title": "ExoFyle",
     "FPS": 60,
     "NaturalPadding":5,
-    "EditorExposed":False,
+}
+StateMapping = {
+    0:Normal_Mode,
+    1:Insert_Mode,
 }
 KeyChords = {
     "Leader": KEY_SPACE
 }
-InputTree = [
+NormalModeInputTree = [
     [KEY_R, Load_All_Packages, KeyChords["Leader"]],
     [KEY_Q, Exit, KeyChords["Leader"]],
-    [KEY_E, lambda: Toggle_Editor(), None]
+    [KEY_E, Toggle_Editor, None],
+    [KEY_I, lambda: Change_State(1), None],
+]
+InsertModeInputTree = [
+    [KEY_ESCAPE, lambda: Change_State(0), None],
 ]
 ContentConstructors = {
-    
+
 }
 ControlFlow = [
     [Build_Frame, "FailSafe"],
     [Handle_Input, "FailSafe"],
 ]
 Editor = {
+    "Exposed": False,
     "Content": [],
-    "X": WindowSettings["NaturalPadding"]/2,
-    "Y":  WindowSettings["NaturalPadding"]/2,
-    "Width": Resolution["Width"] - WindowSettings["NaturalPadding"],
-    "Height": Resolution["Height"] - WindowSettings["NaturalPadding"],
+    "X": Window["NaturalPadding"]/2,
+    "Y":  Window["NaturalPadding"]/2,
+    "Width": Resolution["Width"] - Window["NaturalPadding"],
+    "Height": Resolution["Height"] - Window["NaturalPadding"],
 }
+# Config End #
 if __name__ == '__main__':
     Entry()
