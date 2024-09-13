@@ -1,3 +1,21 @@
+### Windows Installation
+Download most recent release.
+
+```.cmd
+Setup
+```
+
+### Linux Installation
+You should probably just download [NeoVim](https://neovim.io/) honestly, but uh, in case you really want it:
+
+```bash
+./Setup.sh
+```
+
+I suggest adding an alias that opens it.
+
+---
+
 Warning, I use profanity.
 
 ### Reasoning
