@@ -34,12 +34,12 @@ def Set_Background_Color():
     Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
 
 
-def Insert_User_Interface(ContentKey, ContentConstructor):
-    UserInterface.update({ContentKey:ContentConstructor})
+def Insert_User_Interface(Interface, ContentKey, InterfaceComponent):
+    Interface.update({ContentKey:InterfaceComponent})
 
 
-def Remove_User_Interface(ContentKey):
-    UserInterface.pop(ContentKey)
+def Remove_User_Interface(Interface, ContentKey):
+    Interface.pop(ContentKey)
 # API End #
 
 # _____                            _____ 
@@ -60,11 +60,17 @@ def Remove_User_Interface(ContentKey):
 # A Content Constructor is just a GUI implement
 
 
-def Build_Editor() -> None | str:
-    EditorRectangle = Rectangle(Editor["X"], Editor["Y"], Editor["Width"], Editor["Height"])
+def Build_Prompt(InterfaceDataCopy) -> None | str:
+    PromptRectangle = Rectangle(InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["Width"], InterfaceDataCopy["Height"])
+    draw_rectangle_rounded_lines(PromptRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
+    return None
+
+
+def Build_Editor(InterfaceDataCopy) -> None | str:
+    EditorRectangle = Rectangle(InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["Width"], InterfaceDataCopy["Height"])
     LineSpace = 10
     for Line in Editor["Content"]:
-        draw_text(Line, 10, LineSpace, Editor["FontSize"], RAYWHITE)
+        draw_text(Line, 10, LineSpace, InterfaceDataCopy["FontSize"], RAYWHITE)
         LineSpace += 20
     draw_rectangle_rounded_lines(EditorRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
     return None
@@ -74,21 +80,10 @@ def Toggle_Editor() -> None | str:
     if Application["CurrentState"] == Insert_Mode: return
     if Editor["Exposed"] == False:
         Editor["Exposed"] = True
-        Insert_User_Interface("Editor", [Build_Editor, "FailFast"])
+        ControlFlow[0] = [lambda: Build_Frame(EditorUserInterface), "FailSafe"]
     else:
         Editor["Exposed"] = False
-        Remove_User_Interface("Editor")
-    return None
-
-
-def Build_Frame() -> None | str:
-    begin_drawing()
-    clear_background(Background["Color"])
-    FailType:str
-    for ContentConstructor, FailType in UserInterface.values():
-        if Handle_Error(ContentConstructor, ContentConstructor(), FailType) == False:
-            return "Failed to build frame because of broken content constructor."
-    end_drawing()
+        ControlFlow[0] = [lambda: Build_Frame(HomeUserInterface), "FailSafe"]
     return None
 
 
@@ -109,7 +104,11 @@ def Build_Frame() -> None | str:
 
 def Load_All_Packages() -> None | str:
     print("Loading Packages")
-    PackageDirectory = join("C", sep, "ExoFyle", "Packages")
+    if Application["DeveloperMode"] == True:
+        PackageDirectory = join("C", sep, "ExoFyle", "Packages")
+    else:
+        
+        PackageDirectory = "Packages"
     for PackageFile in List_Directory(PackageDirectory):
         with open(join(PackageDirectory, PackageFile), 'r') as PackageFile:
             PackageFileInstructions = [Line for Line in PackageFile.readlines()]
@@ -135,7 +134,33 @@ def Load_All_Packages() -> None | str:
 #(_____)                                       (_____)
 
 
+def Build_Frame(InterfaceType) -> None | str:
+    begin_drawing()
+    clear_background(Background["Color"])
+    FailType:str
+    Rendered = []
+    for Index, (InterfaceData, InterfaceBuilder, FailType) in enumerate(InterfaceType.values()):
+        RenderedCount = len(Rendered)
+        InterfaceDataCopy = {Key:Value for Key, Value in InterfaceData.items()}
+        if len(InterfaceType.values()) > 1:
+            for FutureInterface in [Value for Value in InterfaceType.values()][Index+1:]:
+                FutureInterfaceData = FutureInterface[0]
+                InterfaceDataCopy["Height"] -= FutureInterfaceData["Height"] + Window["NaturalPadding"]
+        if InterfaceDataCopy["Y"] == None:
+            InterfaceDataCopy["Y"] = Window["NaturalPadding"]
+            if RenderedCount > 0:
+                for RenderedInterface in Rendered:
+                    InterfaceDataCopy["Y"] += RenderedInterface["Height"]
+        Rectangle = Handle_Error(InterfaceBuilder, InterfaceBuilder(InterfaceDataCopy), FailType)
+        if Rectangle == False:
+            return "Failed to build frame because of broken content constructor."
+        Rendered.append(InterfaceDataCopy)
+    end_drawing()
+    return None
+
+
 def Change_State(StateKey:int) -> None | str:
+    if StateKey == 1 and Editor["Exposed"] == False: return
     Application["CurrentState"] = StateMapping[StateKey]
 
 
@@ -227,7 +252,7 @@ def Handle_Control_Flow() -> None | str:
 
 
 def Initialize() -> None | str:
-    # set_trace_log_level(LOG_ERROR)
+    set_trace_log_level(LOG_ERROR)
     print("Welcome to the thunderdome bitches.")
     Set_Background_Color()
     Load_All_Packages()
@@ -289,6 +314,7 @@ Background.update({
     "Green":Background["DefaultGreen"],
 })
 Application = {
+    "DeveloperMode":False,
     "Alive":True,
     "CurrentState":Normal_Mode,
     "Buffer":"",
@@ -296,7 +322,7 @@ Application = {
 Window = {
     "Title": "ExoFyle",
     "FPS": 60,
-    "NaturalPadding":5,
+    "NaturalPadding":10,
 }
 StateMapping = {
     0:Normal_Mode,
@@ -314,11 +340,8 @@ NormalModeInputTree = [
 InsertModeInputTree = [
     [KEY_ESCAPE, lambda: Change_State(0), None],
 ]
-UserInterface = {
-
-}
 ControlFlow = [
-    [Build_Frame, "FailSafe"],
+    [lambda: Build_Frame(HomeUserInterface), "FailSafe"],
     [Handle_Input, "FailSafe"],
 ]
 InsertModeControlFlow = [
@@ -327,6 +350,15 @@ InsertModeControlFlow = [
 NormalModeControlFlow = [
     [Handle_Key_Press, "FailSafe"]
 ]
+Prompt = {
+    "Exposed": True,
+    "Content": [""],
+    "FontSize":16,
+    "X": Window["NaturalPadding"]/2,
+    "Y":  None,
+    "Width": Resolution["Width"] - Window["NaturalPadding"],
+    "Height": 20,
+}
 Editor = {
     "Exposed": False,
     "Content": [""],
@@ -337,6 +369,14 @@ Editor = {
     "Width": Resolution["Width"] - Window["NaturalPadding"],
     "Height": Resolution["Height"] - Window["NaturalPadding"],
 }
+HomeUserInterface = {
+    "Prompt": [Prompt, Build_Prompt, "FailFast"]
+}
+EditorUserInterface = {
+    "Editor": [Editor, Build_Editor, "FailFast"],
+    "Prompt": [Prompt, Build_Prompt, "FailFast"]
+}
+Rendered = []
 KeyMap = {
     KEY_A: 'a',
     KEY_B: 'b',
@@ -370,4 +410,9 @@ KeyMap = {
 }
 # Config End #
 if __name__ == '__main__':
+    from sys import argv as Arguments
+    print(Arguments)
+    if len(Arguments) >= 2:
+        if Arguments[1] == "D":
+            Application["DeveloperMode"] = True
     Entry()
