@@ -12,7 +12,7 @@ mkdir C:\ExoFyleVenv & cd C:\ExoFyleVenv
 py -m venv Venv & Venv\Scripts\activate & pip install raylib-py & deactivate
 cd ..
 mkdir ExoFyle & cd ExoFyle
-curl -L -o exofyle.zip https://github.com/Robert-DeForrest-Reynolds/ExoFyle/releases/download/0.0.2/Pre_Alpha_0.0.2.zip
+curl -L -o exofyle.zip https://github.com/Robert-DeForrest-Reynolds/ExoFyle/releases/download/0.0.3/Alpha_0.0.3.zip
 tar -xf ExoFyle.zip
 del ExoFyle.zip
 setx /M PATH "%PATH%;C:\ExoFyle"
