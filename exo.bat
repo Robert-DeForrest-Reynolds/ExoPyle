@@ -1,0 +1,1 @@
+.venv\Scripts\activate && py -B ExoFyle.py && deactivate

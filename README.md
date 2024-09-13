@@ -1,10 +1,22 @@
+You'll need Python installed to use this editor. [Python](https://www.python.org/downloads/)
+
 ### Windows Installation
 Download most recent release, extract the ExoFyle directory where you'd like.
 
 Open a command prompt as admin, navigate to the ExoFyle directory, and run the bat script using the command below.
+You need to open as admin because it will add the directory to your path so you can open ExoFyle using the command exo.bat
 
-```.cmd
-Setup
+```bat
+cd C:\
+mkdir C:\ExoFyleVenv & cd C:\ExoFyleVenv
+py -m venv Venv & Venv\Scripts\activate & pip install raylib-py & deactivate
+cd ..
+mkdir ExoFyle & cd ExoFyle
+curl -L -o exofyle.zip https://github.com/Robert-DeForrest-Reynolds/ExoFyle/releases/download/0.0.2/Pre_Alpha_0.0.2.zip
+tar -xf ExoFyle.zip
+del ExoFyle.zip
+setx /M PATH "%PATH%;C:\ExoFyle"
+cd C:\ & exo.bat
 ```
 
 ### Linux Installation
