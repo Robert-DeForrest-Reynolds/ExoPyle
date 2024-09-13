@@ -4,7 +4,8 @@
 
 from raylibpy import *
 
-from os import listdir as List_Directory
+from os import listdir as List_Directory, sep
+from os.path import join
 from sys import exit as Exit
 
 # Here's a bit of notes #
@@ -108,8 +109,9 @@ def Build_Frame() -> None | str:
 
 def Load_All_Packages() -> None | str:
     print("Loading Packages")
-    for PackageFile in List_Directory("Packages"):
-        with open("Packages/" + PackageFile, 'r') as PackageFile:
+    PackageDirectory = join("C", sep, "ExoFyle", "Packages")
+    for PackageFile in List_Directory(PackageDirectory):
+        with open(join(PackageDirectory, PackageFile), 'r') as PackageFile:
             PackageFileInstructions = [Line for Line in PackageFile.readlines()]
             ScriptContent = [Instruction for Instruction in PackageFileInstructions]
             Instructions = "\n".join(ScriptContent).replace("from Source.ExoFyle import *\n", "")
@@ -233,7 +235,6 @@ def Initialize() -> None | str:
     init_window(Resolution["Width"], Resolution["Height"], Window["Title"])
     set_target_fps(Window["FPS"])
     set_window_size(Resolution["Width"], Resolution["Height"])
-    print(get_screen_width())
     return None
 
 
