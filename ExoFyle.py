@@ -33,12 +33,12 @@ def Set_Background_Color():
     Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
 
 
-def Insert_Content_Constructor(ContentKey, ContentConstructor):
-    ContentConstructors.update({ContentKey:ContentConstructor})
+def Insert_User_Interface(ContentKey, ContentConstructor):
+    UserInterface.update({ContentKey:ContentConstructor})
 
 
-def Remove_Content_Constructor(ContentKey):
-    ContentConstructors.pop(ContentKey)
+def Remove_User_Interface(ContentKey):
+    UserInterface.pop(ContentKey)
 # API End #
 
 # _____                            _____ 
@@ -63,7 +63,7 @@ def Build_Editor() -> None | str:
     EditorRectangle = Rectangle(Editor["X"], Editor["Y"], Editor["Width"], Editor["Height"])
     LineSpace = 10
     for Line in Editor["Content"]:
-        draw_text(Line, 10, LineSpace, 20, RAYWHITE)
+        draw_text(Line, 10, LineSpace, Editor["FontSize"], RAYWHITE)
         LineSpace += 20
     draw_rectangle_rounded_lines(EditorRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
     return None
@@ -73,10 +73,10 @@ def Toggle_Editor() -> None | str:
     if Application["CurrentState"] == Insert_Mode: return
     if Editor["Exposed"] == False:
         Editor["Exposed"] = True
-        Insert_Content_Constructor("Editor", [Build_Editor, "FailFast"])
+        Insert_User_Interface("Editor", [Build_Editor, "FailFast"])
     else:
         Editor["Exposed"] = False
-        Remove_Content_Constructor("Editor")
+        Remove_User_Interface("Editor")
     return None
 
 
@@ -84,7 +84,7 @@ def Build_Frame() -> None | str:
     begin_drawing()
     clear_background(Background["Color"])
     FailType:str
-    for ContentConstructor, FailType in ContentConstructors.values():
+    for ContentConstructor, FailType in UserInterface.values():
         if Handle_Error(ContentConstructor, ContentConstructor(), FailType) == False:
             return "Failed to build frame because of broken content constructor."
     end_drawing()
@@ -137,15 +137,29 @@ def Change_State(StateKey:int) -> None | str:
     Application["CurrentState"] = StateMapping[StateKey]
 
 
+def Input_Key() -> None | str:
+    Key = get_key_pressed()
+    if Key in KeyMap.keys():
+        Editor["Content"][Editor["CurrentLine"]] += KeyMap[Key]
+        LineSize = measure_text(Editor["Content"][Editor["CurrentLine"]], Editor["FontSize"])
+        if LineSize >= Editor["Width"] - 20:
+            Editor["Content"].append("")
+            Editor["CurrentLine"] += 1
+    else:
+        Handle_Key_Press(InsertModeInputTree)
+    return None
+
+
 def Insert_Mode() -> None | str:
-    Key = Handle_Key_Press(InsertModeInputTree)
-    print(type(Key))
-    if type(Key) == int:
-        print(Key.encode())
+    for Function, FailType in InsertModeControlFlow:
+        Handle_Error(Function, Function(), FailType)
+    return None
 
 
 def Normal_Mode() -> None | str:
-    Handle_Key_Press(NormalModeInputTree)
+    for Function, FailType in NormalModeControlFlow:
+        Handle_Error(Function, Function(NormalModeInputTree), FailType)
+    return None
 
 
 def Handle_Key_Press(InputTree) -> None | str | int:
@@ -156,14 +170,17 @@ def Handle_Key_Press(InputTree) -> None | str | int:
             if KeyChord != None:
                 if is_key_down(KeyChord) == False: return f"Command Requires KeyChord {KeyChord}"
             Function()
-            return Key
     return None
 
 
 def Handle_Input() -> None | str:
     Application["CurrentState"]()
 
-
+# Handle error is to be used for core control flow error checking.
+# Anything outside of the core control flow is to be manage with None | str return.
+# This is to abstract away the handling of the core control flow from the user space.
+# Only the developers should have to worry about the core breaking, how, and why.
+# If a build is released with core bugs, it is on the developer to investigate, not the user.
 def Handle_Error(FunctionSignature, FunctionReturn, FunctionFailType) -> bool:
     try:
         if FunctionReturn is not None:
@@ -208,12 +225,15 @@ def Handle_Control_Flow() -> None | str:
 
 
 def Initialize() -> None | str:
-    set_trace_log_level(LOG_ERROR)
+    # set_trace_log_level(LOG_ERROR)
     print("Welcome to the thunderdome bitches.")
     Set_Background_Color()
     Load_All_Packages()
+    set_config_flags(FLAG_BORDERLESS_WINDOWED_MODE | FLAG_WINDOW_UNDECORATED)
     init_window(Resolution["Width"], Resolution["Height"], Window["Title"])
     set_target_fps(Window["FPS"])
+    set_window_size(Resolution["Width"], Resolution["Height"])
+    print(get_screen_width())
     return None
 
 
@@ -270,6 +290,7 @@ Background.update({
 Application = {
     "Alive":True,
     "CurrentState":Normal_Mode,
+    "Buffer":"",
 }
 Window = {
     "Title": "ExoFyle",
@@ -292,20 +313,59 @@ NormalModeInputTree = [
 InsertModeInputTree = [
     [KEY_ESCAPE, lambda: Change_State(0), None],
 ]
-ContentConstructors = {
+UserInterface = {
 
 }
 ControlFlow = [
     [Build_Frame, "FailSafe"],
     [Handle_Input, "FailSafe"],
 ]
+InsertModeControlFlow = [
+    [Input_Key, "FailSafe"]
+]
+NormalModeControlFlow = [
+    [Handle_Key_Press, "FailSafe"]
+]
 Editor = {
     "Exposed": False,
-    "Content": [],
+    "Content": [""],
+    "CurrentLine":0,
+    "FontSize":16,
     "X": Window["NaturalPadding"]/2,
     "Y":  Window["NaturalPadding"]/2,
     "Width": Resolution["Width"] - Window["NaturalPadding"],
     "Height": Resolution["Height"] - Window["NaturalPadding"],
+}
+KeyMap = {
+    KEY_A: 'a',
+    KEY_B: 'b',
+    KEY_C: 'c',
+    KEY_D: 'd',
+    KEY_E: 'e',
+    KEY_F: 'f',
+    KEY_G: 'g',
+    KEY_H: 'h',
+    KEY_I: 'i',
+    KEY_J: 'j',
+    KEY_K: 'k',
+    KEY_L: 'l',
+    KEY_M: 'm',
+    KEY_N: 'n',
+    KEY_O: 'o',
+    KEY_P: 'p',
+    KEY_Q: 'q',
+    KEY_R: 'r',
+    KEY_S: 's',
+    KEY_T: 't',
+    KEY_U: 'u',
+    KEY_V: 'v',
+    KEY_W: 'w',
+    KEY_X: 'x',
+    KEY_Y: 'y',
+    KEY_Z: 'z',
+    KEY_SPACE: ' ',
+    KEY_ENTER: 'enter',
+    KEY_BACKSPACE: 'backspace',
 }
 # Config End #
 if __name__ == '__main__':

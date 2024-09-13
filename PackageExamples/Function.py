@@ -3,4 +3,4 @@ from ExoFyle import *
 def HelloWorld():
     print("HelloWorld")
 
-InputTree.append([KEY_H, HelloWorld, None])
+NormalModeInputTree.append([KEY_H, HelloWorld, None])
