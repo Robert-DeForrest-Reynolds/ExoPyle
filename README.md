@@ -1,5 +1,7 @@
 ### Windows Installation
-Download most recent release.
+Download most recent release, extract the ExoFyle directory where you'd like.
+
+Open a command prompt as admin, navigate to the ExoFyle directory, and run the bat script using the command below.
 
 ```.cmd
 Setup
