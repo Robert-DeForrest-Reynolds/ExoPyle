@@ -22,4 +22,4 @@ Here's the thing though, low-level complication will never help high-level learn
 
 ### Extending
 To extend, create a Python script within the `Packages` directory, within the directory that ExoFyle is located. If you downloaded an official release, it'll come with an empty package directory within the directory. There is also a `PackageExamples` directory with examples if interacting with the API.
-If you're familiar with Python, simply reading first chapter of the (documentation)[https://github.com/Robert-DeForrest-Reynolds/ExoFyle/wiki/ExoFyle-Documentation] will help you get up to speed if I've done my job well.
+If you're familiar with Python, simply reading first chapter of the [documentation](https://github.com/Robert-DeForrest-Reynolds/ExoFyle/wiki/ExoFyle-Documentation)will help you get up to speed if I've done my job well.
