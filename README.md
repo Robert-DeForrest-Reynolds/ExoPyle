@@ -53,5 +53,5 @@ Here's the thing though, low-level complication will never help high-level learn
  - Minimal UI Design, Minimal Focus Lost
 
 ### Extending
-To extend, create a Python script within the `Packages` directory, within the directory that ExoFyle is located. If you downloaded an official release, it'll come with an empty package directory within the directory. There is also a `PackageExamples` directory with examples if interacting with the API.
-If you're familiar with Python, simply reading first chapter of the [documentation](https://github.com/Robert-DeForrest-Reynolds/ExoFyle/wiki/ExoFyle-Documentation) will help you get up to speed if I've done my job well.
+To extend ExoFyle, simply create a Python script inside the Packages directory located within the ExoFyle installation. The release includes an empty Packages directory for this purpose.
+There’s also a PackageExamples directory with sample scripts that interact with the API. If you're comfortable with Python, reading the first chapter of the documentation will get you up to speed on customizing ExoFyle, if I've done *my* job well that is.
