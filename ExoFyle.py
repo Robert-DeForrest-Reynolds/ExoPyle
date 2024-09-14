@@ -60,8 +60,17 @@ def Remove_User_Interface(Interface, ContentKey):
 # A Content Constructor is just a GUI implement
 
 
+def Build_FileName_Prompt() -> None | str:
+    PromptRectangle = Rectangle(FileNamePrompt["X"], FileNamePrompt["Y"], FileNamePrompt["Width"], FileNamePrompt["Height"])
+    draw_rectangle_rounded_lines(PromptRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
+    draw_rectangle(FileNamePrompt["X"], FileNamePrompt["Y"], FileNamePrompt["Width"], FileNamePrompt["Height"], Color(255, 0, 0, 0))
+    draw_text(FileNamePrompt["Content"], FileNamePrompt["X"], FileNamePrompt["Y"], FileNamePrompt["FontSize"], RAYWHITE)
+    return None
+
+
 def Build_InfoBar(InterfaceDataCopy) -> None | str:
     draw_text(Application["StateAsString"], InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["FontSize"], RAYWHITE)
+    return None
 
 
 def Build_Prompt(InterfaceDataCopy) -> None | str:
@@ -160,7 +169,10 @@ def Build_Frame(InterfaceType) -> None | str:
                         InterfaceDataCopy["Y"] += RenderedInterface["Height"]
         elif InterfaceDataCopy["Y"] == -1:
             InterfaceDataCopy["Y"] = Resolution["Height"] - InterfaceDataCopy["Height"]
-        Rectangle = Handle_Error(InterfaceBuilder, InterfaceBuilder(InterfaceDataCopy), FailType)
+        if InterfaceDataCopy["Position"] == "Absolute":
+            Rectangle = Handle_Error(InterfaceBuilder, InterfaceBuilder(), FailType)
+        else:
+            Rectangle = Handle_Error(InterfaceBuilder, InterfaceBuilder(InterfaceDataCopy), FailType)
         if Rectangle == False:
             return "Failed to build frame because of broken content constructor."
         Rendered.append(InterfaceDataCopy)
@@ -172,6 +184,18 @@ def Change_State(StateKey:int) -> None | str:
     if StateKey == 1 and Editor["Exposed"] == False: return
     Application["StateAsString"] = StateAsString[StateKey]
     Application["CurrentState"] = StateMapping[StateKey]
+
+
+def Input_FileName_Key() -> None | str:
+    Key = get_key_pressed()
+    if Key in KeyMap.keys():
+        if Key == KEY_BACKSPACE:
+            FileNamePrompt["Content"] = FileNamePrompt["Content"][:-1]
+        else:
+            FileNamePrompt["Content"] += KeyMap[Key]
+    else:
+        Handle_Key_Press(PromptModeInputTree)
+    return None
 
 
 def Input_Command_Key() -> None | str:
@@ -228,6 +252,12 @@ def Normal_Mode() -> None | str:
     return None
 
 
+def FileName_Input() -> None | str:
+    for Function, FailType in FileNameModeControlFlow:
+        Handle_Error(Function, Function(), FailType)
+    return None
+
+
 def Handle_Key_Press(InputTree) -> None | str | int:
     Key: int
     KeyChord:int
@@ -263,6 +293,17 @@ def Is_Legal_Script(UserInstruction:str) -> None | str:
     for Instruction in InvalidInstructions:
         if Instruction in UserInstruction: return "Illegal Script"
     return None
+
+
+def Save_File() -> None | str:
+    if Editor["Exposed"] == False: return
+    if Editor["CurrentFileName"] == None:
+        EditorUserInterface.update({"FileNamePrompt":[FileNamePrompt, Build_FileName_Prompt, "FailFast"]})
+        Change_State(3)
+
+
+def Open_File() -> None | str:
+    pass
 
 
 # _____                                                                                                               _____ 
@@ -368,12 +409,15 @@ StateAsString = {
     0:"Normal",
     1:"Insert",
     2:"Prompt",
+    3:"FileNameInput"
 }
 StateMapping = {
     0:Normal_Mode,
     1:Insert_Mode,
     2:Prompt_Mode,
+    3:FileName_Input,
 }
+
 KeyChords = {
     "Leader": KEY_SPACE
 }
@@ -381,6 +425,8 @@ NormalModeInputTree = [
     [KEY_R, Load_All_Packages, KeyChords["Leader"]],
     [KEY_Q, Exit, KeyChords["Leader"]],
     [KEY_E, Toggle_Editor, None],
+    [KEY_S, Save_File, None],
+    [KEY_O, Open_File, None],
     [KEY_I, lambda: Change_State(1), None],
     [KEY_P, lambda: Change_State(2), None],
 ]
@@ -391,6 +437,11 @@ PromptModeInputTree = [
     [KEY_ESCAPE, lambda: Change_State(0), None],
     [KEY_ENTER, Submit_Command, None],
 ]
+FileNameModeInputTree = [
+    [KEY_ESCAPE, lambda: Change_State(0), None],
+    [KEY_ENTER, Submit_Command, None],
+]
+
 ControlFlow = [
     [lambda: Build_Frame(HomeUserInterface), "FailSafe"],
     [Handle_Input, "FailSafe"],
@@ -404,6 +455,21 @@ NormalModeControlFlow = [
 CommandModeControlFlow = [
     [Input_Command_Key, "FailSafe"]
 ]
+FileNameModeControlFlow = [
+    [Input_FileName_Key, "FailSafe"]
+]
+
+FileNamePrompt = {
+    "Exposed": False,
+    "Content": "",
+    "X": Resolution["Height"]/2 - Window["NaturalPadding"]/2,
+    "Y":  Resolution["Width"]/2,
+    "FontSize": 16,
+    "Width": 240,
+    "Height": 20,
+    "Resizable": False,
+    "Position":"Absolute",
+}
 InfoBar = {
     "Exposed": True,
     "FontSize":16,
@@ -412,6 +478,7 @@ InfoBar = {
     "Width": Resolution["Width"] - Window["NaturalPadding"],
     "Height": 20,
     "Resizable": False,
+    "Position":"Relative",
 }
 Prompt = {
     "Exposed": True,
@@ -422,18 +489,22 @@ Prompt = {
     "Width": Resolution["Width"] - Window["NaturalPadding"],
     "Height": 20,
     "Resizable": False,
+    "Position":"Relative",
 }
 Editor = {
     "Exposed": False,
     "Content": [""],
-    "CurrentLine":0,
-    "FontSize":16,
+    "CurrentLine": 0,
+    "FontSize": 16,
+    "CurrentFileName": None,
     "X": Window["NaturalPadding"]/2,
     "Y":  Window["NaturalPadding"]/2,
     "Width": Resolution["Width"] - Window["NaturalPadding"],
     "Height": Resolution["Height"] - Window["NaturalPadding"],
     "Resizable": True,
+    "Position":"Relative",
 }
+
 HomeUserInterface = {
     "Prompt": [Prompt, Build_Prompt, "FailFast"],
     "InfoBar": [InfoBar, Build_InfoBar, "FailFast"]
@@ -444,6 +515,7 @@ EditorUserInterface = {
     "InfoBar": [InfoBar, Build_InfoBar, "FailFast"],
 }
 Rendered = []
+
 KeyMap = {
     KEY_A: 'a',
     KEY_B: 'b',
@@ -477,7 +549,6 @@ KeyMap = {
 # Config End #
 if __name__ == '__main__':
     from sys import argv as Arguments
-    print(Arguments)
     if len(Arguments) >= 2:
         if Arguments[1] == "D":
             Application["DeveloperMode"] = True
