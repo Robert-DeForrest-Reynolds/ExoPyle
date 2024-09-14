@@ -7,6 +7,7 @@ from raylibpy import *
 from os import listdir as List_Directory, sep
 from os.path import join
 from sys import exit as Exit
+from asyncio import run, sleep
 
 # Here's a bit of notes #
 # A function should return None|str if error handling is necssary
@@ -187,24 +188,30 @@ def Change_State(StateKey:int) -> None | str:
 
 
 def Input_FileName_Key() -> None | str:
+    if is_key_down(KEY_BACKSPACE):
+        if FileNamePrompt["Backspace"] == 0:return
+        if FileNamePrompt["Content"] != "":
+            run(Backspace_Cooldown())
+            FileNamePrompt["Content"] = Editor["Content"][:-1]
+        return None
     Key = get_key_pressed()
     if Key in KeyMap.keys():
-        if Key == KEY_BACKSPACE:
-            FileNamePrompt["Content"] = FileNamePrompt["Content"][:-1]
-        else:
-            FileNamePrompt["Content"] += KeyMap[Key]
+        FileNamePrompt["Content"] += KeyMap[Key]
     else:
         Handle_Key_Press(PromptModeInputTree)
     return None
 
 
 def Input_Command_Key() -> None | str:
+    if is_key_down(KEY_BACKSPACE):
+        if Prompt["Backspace"] == 0:return
+        if Prompt["Content"] != "":
+            run(Backspace_Cooldown())
+            Prompt["Content"] = Prompt["Content"][:-1]
+        return None
     Key = get_key_pressed()
     if Key in KeyMap.keys():
-        if Key == KEY_BACKSPACE:
-            Prompt["Content"] = Prompt["Content"][:-1]
-        else:
-            Prompt["Content"] += KeyMap[Key]
+        Prompt["Content"] += KeyMap[Key]
     else:
         Handle_Key_Press(PromptModeInputTree)
     return None
@@ -214,15 +221,24 @@ def Submit_Command() -> None | str:
     Prompt["Content"] = ""
 
 
+async def Backspace_Cooldown():
+    Editor["Backspace"] = 0
+    await sleep(0.1)
+    Editor["Backspace"] = 1
+
+
 def Input_Editor_Key() -> None | str:
-    Key = get_key_pressed()
-    if Key in KeyMap.keys():
-        if Key == KEY_BACKSPACE:
+    if is_key_down(KEY_BACKSPACE):
+        if Editor["Backspace"] == 0:return
+        if Editor["Content"][Editor["CurrentLine"]] != "":
+            run(Backspace_Cooldown())
             Editor["Content"][Editor["CurrentLine"]] = Editor["Content"][Editor["CurrentLine"]][:-1]
             LineSize = measure_text(Editor["Content"][Editor["CurrentLine"]], Editor["FontSize"])
-        else:
-            Editor["Content"][Editor["CurrentLine"]] += KeyMap[Key]
-            LineSize = measure_text(Editor["Content"][Editor["CurrentLine"]], Editor["FontSize"])
+        return None
+    Key = get_key_pressed()
+    if Key in KeyMap.keys():
+        Editor["Content"][Editor["CurrentLine"]] += KeyMap[Key]
+        LineSize = measure_text(Editor["Content"][Editor["CurrentLine"]], Editor["FontSize"])
         if LineSize >= Editor["Width"] - 20:
             Editor["Content"].append("")
             Editor["CurrentLine"] += 1
@@ -465,6 +481,7 @@ FileNamePrompt = {
     "X": Resolution["Height"]/2 - Window["NaturalPadding"]/2,
     "Y":  Resolution["Width"]/2,
     "FontSize": 16,
+    "Backspace": 1,
     "Width": 240,
     "Height": 20,
     "Resizable": False,
@@ -484,6 +501,7 @@ Prompt = {
     "Exposed": True,
     "Content": "",
     "FontSize":16,
+    "Backspace": 1,
     "X": Window["NaturalPadding"]/2,
     "Y": None,
     "Width": Resolution["Width"] - Window["NaturalPadding"],
@@ -496,6 +514,7 @@ Editor = {
     "Content": [""],
     "CurrentLine": 0,
     "FontSize": 16,
+    "Backspace": 1,
     "CurrentFileName": None,
     "X": Window["NaturalPadding"]/2,
     "Y":  Window["NaturalPadding"]/2,
