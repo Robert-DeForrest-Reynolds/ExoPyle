@@ -60,9 +60,12 @@ def Remove_User_Interface(Interface, ContentKey):
 # A Content Constructor is just a GUI implement
 
 
+def Build_InfoBar(InterfaceDataCopy) -> None | str:
+    draw_text(Application["StateAsString"], InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["FontSize"], RAYWHITE)
+
+
 def Build_Prompt(InterfaceDataCopy) -> None | str:
-    PromptRectangle = Rectangle(InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["Width"], InterfaceDataCopy["Height"])
-    draw_rectangle_rounded_lines(PromptRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
+    draw_text(Prompt["Content"], InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["FontSize"], RAYWHITE)
     return None
 
 
@@ -142,15 +145,21 @@ def Build_Frame(InterfaceType) -> None | str:
     for Index, (InterfaceData, InterfaceBuilder, FailType) in enumerate(InterfaceType.values()):
         RenderedCount = len(Rendered)
         InterfaceDataCopy = {Key:Value for Key, Value in InterfaceData.items()}
-        if len(InterfaceType.values()) > 1:
-            for FutureInterface in [Value for Value in InterfaceType.values()][Index+1:]:
-                FutureInterfaceData = FutureInterface[0]
-                InterfaceDataCopy["Height"] -= FutureInterfaceData["Height"] + Window["NaturalPadding"]
+        if InterfaceData["Resizable"] == True:
+            if len(InterfaceType.values()) > 1:
+                for FutureInterface in [Value for Value in InterfaceType.values()][Index+1:]:
+                    FutureInterfaceData = FutureInterface[0]
+                    InterfaceDataCopy["Height"] -= FutureInterfaceData["Height"]
         if InterfaceDataCopy["Y"] == None:
             InterfaceDataCopy["Y"] = Window["NaturalPadding"]
             if RenderedCount > 0:
                 for RenderedInterface in Rendered:
-                    InterfaceDataCopy["Y"] += RenderedInterface["Height"]
+                    if RenderedInterface["Y"] > InterfaceDataCopy["Y"]:
+                        InterfaceDataCopy["Y"] -= RenderedInterface["Height"]
+                    else:
+                        InterfaceDataCopy["Y"] += RenderedInterface["Height"]
+        elif InterfaceDataCopy["Y"] == -1:
+            InterfaceDataCopy["Y"] = Resolution["Height"] - InterfaceDataCopy["Height"]
         Rectangle = Handle_Error(InterfaceBuilder, InterfaceBuilder(InterfaceDataCopy), FailType)
         if Rectangle == False:
             return "Failed to build frame because of broken content constructor."
@@ -161,17 +170,25 @@ def Build_Frame(InterfaceType) -> None | str:
 
 def Change_State(StateKey:int) -> None | str:
     if StateKey == 1 and Editor["Exposed"] == False: return
+    Application["StateAsString"] = StateAsString[StateKey]
     Application["CurrentState"] = StateMapping[StateKey]
 
 
 def Input_Key() -> None | str:
     Key = get_key_pressed()
     if Key in KeyMap.keys():
-        Editor["Content"][Editor["CurrentLine"]] += KeyMap[Key]
-        LineSize = measure_text(Editor["Content"][Editor["CurrentLine"]], Editor["FontSize"])
+        if Key == KEY_BACKSPACE:
+            Editor["Content"][Editor["CurrentLine"]] = Editor["Content"][Editor["CurrentLine"]][:-1]
+            LineSize = measure_text(Editor["Content"][Editor["CurrentLine"]], Editor["FontSize"])
+        else:
+            Editor["Content"][Editor["CurrentLine"]] += KeyMap[Key]
+            LineSize = measure_text(Editor["Content"][Editor["CurrentLine"]], Editor["FontSize"])
         if LineSize >= Editor["Width"] - 20:
             Editor["Content"].append("")
             Editor["CurrentLine"] += 1
+        elif LineSize <= 0:
+            Editor["Content"] = Editor["Content"][:-1]
+            Editor["CurrentLine"] -= 1
     else:
         Handle_Key_Press(InsertModeInputTree)
     return None
@@ -316,6 +333,7 @@ Background.update({
 Application = {
     "DeveloperMode":False,
     "Alive":True,
+    "StateAsString":"Normal",
     "CurrentState":Normal_Mode,
     "Buffer":"",
 }
@@ -323,6 +341,10 @@ Window = {
     "Title": "ExoFyle",
     "FPS": 60,
     "NaturalPadding":10,
+}
+StateAsString = {
+    0:"Normal",
+    1:"Insert",
 }
 StateMapping = {
     0:Normal_Mode,
@@ -350,14 +372,24 @@ InsertModeControlFlow = [
 NormalModeControlFlow = [
     [Handle_Key_Press, "FailSafe"]
 ]
-Prompt = {
+InfoBar = {
     "Exposed": True,
-    "Content": [""],
     "FontSize":16,
     "X": Window["NaturalPadding"]/2,
-    "Y":  None,
+    "Y":  -1,
     "Width": Resolution["Width"] - Window["NaturalPadding"],
     "Height": 20,
+    "Resizable": False,
+}
+Prompt = {
+    "Exposed": True,
+    "Content": "",
+    "FontSize":16,
+    "X": Window["NaturalPadding"]/2,
+    "Y": None,
+    "Width": Resolution["Width"] - Window["NaturalPadding"],
+    "Height": 20,
+    "Resizable": False,
 }
 Editor = {
     "Exposed": False,
@@ -368,13 +400,16 @@ Editor = {
     "Y":  Window["NaturalPadding"]/2,
     "Width": Resolution["Width"] - Window["NaturalPadding"],
     "Height": Resolution["Height"] - Window["NaturalPadding"],
+    "Resizable": True,
 }
 HomeUserInterface = {
-    "Prompt": [Prompt, Build_Prompt, "FailFast"]
+    "Prompt": [Prompt, Build_Prompt, "FailFast"],
+    "InfoBar": [InfoBar, Build_InfoBar, "FailFast"]
 }
 EditorUserInterface = {
     "Editor": [Editor, Build_Editor, "FailFast"],
-    "Prompt": [Prompt, Build_Prompt, "FailFast"]
+    "Prompt": [Prompt, Build_Prompt, "FailFast"],
+    "InfoBar": [InfoBar, Build_InfoBar, "FailFast"],
 }
 Rendered = []
 KeyMap = {
