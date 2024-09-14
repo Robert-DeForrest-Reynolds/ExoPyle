@@ -174,7 +174,23 @@ def Change_State(StateKey:int) -> None | str:
     Application["CurrentState"] = StateMapping[StateKey]
 
 
-def Input_Key() -> None | str:
+def Input_Command_Key() -> None | str:
+    Key = get_key_pressed()
+    if Key in KeyMap.keys():
+        if Key == KEY_BACKSPACE:
+            Prompt["Content"] = Prompt["Content"][:-1]
+        else:
+            Prompt["Content"] += KeyMap[Key]
+    else:
+        Handle_Key_Press(PromptModeInputTree)
+    return None
+
+
+def Submit_Command() -> None | str:
+    Prompt["Content"] = ""
+
+
+def Input_Editor_Key() -> None | str:
     Key = get_key_pressed()
     if Key in KeyMap.keys():
         if Key == KEY_BACKSPACE:
@@ -196,6 +212,12 @@ def Input_Key() -> None | str:
 
 def Insert_Mode() -> None | str:
     for Function, FailType in InsertModeControlFlow:
+        Handle_Error(Function, Function(), FailType)
+    return None
+
+
+def Prompt_Mode() -> None | str:
+    for Function, FailType in CommandModeControlFlow:
         Handle_Error(Function, Function(), FailType)
     return None
 
@@ -345,10 +367,12 @@ Window = {
 StateAsString = {
     0:"Normal",
     1:"Insert",
+    2:"Prompt",
 }
 StateMapping = {
     0:Normal_Mode,
     1:Insert_Mode,
+    2:Prompt_Mode,
 }
 KeyChords = {
     "Leader": KEY_SPACE
@@ -358,19 +382,27 @@ NormalModeInputTree = [
     [KEY_Q, Exit, KeyChords["Leader"]],
     [KEY_E, Toggle_Editor, None],
     [KEY_I, lambda: Change_State(1), None],
+    [KEY_P, lambda: Change_State(2), None],
 ]
 InsertModeInputTree = [
     [KEY_ESCAPE, lambda: Change_State(0), None],
+]
+PromptModeInputTree = [
+    [KEY_ESCAPE, lambda: Change_State(0), None],
+    [KEY_ENTER, Submit_Command, None],
 ]
 ControlFlow = [
     [lambda: Build_Frame(HomeUserInterface), "FailSafe"],
     [Handle_Input, "FailSafe"],
 ]
 InsertModeControlFlow = [
-    [Input_Key, "FailSafe"]
+    [Input_Editor_Key, "FailSafe"]
 ]
 NormalModeControlFlow = [
     [Handle_Key_Press, "FailSafe"]
+]
+CommandModeControlFlow = [
+    [Input_Command_Key, "FailSafe"]
 ]
 InfoBar = {
     "Exposed": True,
@@ -440,7 +472,6 @@ KeyMap = {
     KEY_Y: 'y',
     KEY_Z: 'z',
     KEY_SPACE: ' ',
-    KEY_ENTER: 'enter',
     KEY_BACKSPACE: 'backspace',
 }
 # Config End #
