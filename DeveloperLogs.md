@@ -11,4 +11,4 @@
  - [ ] Comment-Out
 
 ## Official Packages
- - [ ] Language Server Protocol-like Implement (I don't think I like JSON)
+ - [ ] Language Server Protocol Implement
