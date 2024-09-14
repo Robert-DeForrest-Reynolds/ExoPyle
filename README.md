@@ -19,6 +19,9 @@ setx /M PATH "%PATH%;C:\ExoFyle"
 cd C:\ & exo.bat
 ```
 
+###### Why Admin?
+You need admin rights to add the ExoFyle directory to your system path, allowing you to run ExoFyle by typing exo.bat from any directory.
+
 ### Linux Installation
 You should probably just download [NeoVim](https://neovim.io/) honestly, but uh, in case you really want it:
 
