@@ -58,3 +58,15 @@ Here's the thing though, low-level complication will never help high-level learn
 ### Extending
 To extend ExoFyle, simply create a Python script inside the Packages directory located within the ExoFyle installation. The release includes an empty Packages directory for this purpose.
 There’s also a PackageExamples directory with sample scripts that interact with the API. If you're comfortable with Python, reading the first chapter of the documentation will get you up to speed on customizing ExoFyle, if I've done *my* job well that is.
+
+I want all of the "official" packages for ExoFyle easily be curl'd through command mechanisms built-in. That way if you never use it, it's not sitting on your computer locally doing nothing, but it's still very easy to obtain through ExoFyle commands. I do not want this methodology to be adopted throughout the community. I take a BDFL mentality to this source, so the curl's will be meticulously tested, and reviewed by myself at every, and any part of this repository. Do not curl unofficial ExoFyle packages that in which the links are not provided through this GitHub repository. Third party packages should be distributed using the script itself, and should be downloaded from a trusted source.
+
+I need to make this clear: use curl at your own risk, as you can run binary output within your terminal with curl, as well as expose yourself on accident in many of ways. Simply put, just don't use curl commands you do not trust.
+
+### Future
+
+I want to create a video demonstrating how to a workflow with ExoFyle would work *theoretically*. It's a very customizable editor, so the video will probably go over what features are included, and then demonstrate how to extend the editor.
+
+The documentation still has to be made, and fleshed out, I intend to get the core functionality set in stone largely, before I begin writing documentation, as I don't want to have to constantly rework large portions of the documentation while I'm still structuring the core functionality.
+
+I'm trying to come up with a solid, easy to extend system for writing LSP's. We'll get there. The LSP will not be core functionality, and will be one of the officially supported Packages for ExoFyle.
