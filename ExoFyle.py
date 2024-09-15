@@ -4,7 +4,7 @@
 
 from raylibpy import *
 
-from typing import List
+from typing import List, Dict
 from os import listdir as List_Directory, sep
 from os.path import join
 from sys import exit as Exit
@@ -22,7 +22,7 @@ def Set_Background_Color() -> None | Error:
         Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
 
 
-def Insert_User_Interface(Interface, ContentKey, InterfaceComponent):
+def Insert_User_Interface(Interface:Dict, ContentKey, InterfaceComponent):
     Interface.update({ContentKey:InterfaceComponent})
 
 
