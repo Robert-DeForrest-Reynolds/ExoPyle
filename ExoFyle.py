@@ -4,7 +4,7 @@
 
 from raylibpy import *
 
-from typing import List, Dict
+from typing import List, Dict, Callable
 from os import listdir as List_Directory, sep
 from os.path import join
 from sys import exit as Exit
@@ -35,27 +35,24 @@ def Build_FileName_Prompt() -> None | Error:
     draw_rectangle_rounded_lines(PromptRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
     draw_rectangle(FileNamePrompt["X"], FileNamePrompt["Y"], FileNamePrompt["Width"], FileNamePrompt["Height"], Color(255, 0, 0, 0))
     draw_text(FileNamePrompt["Content"], FileNamePrompt["X"], FileNamePrompt["Y"], FileNamePrompt["FontSize"], RAYWHITE)
-    return None
 
 
 def Build_InfoBar(InterfaceDataCopy) -> None | Error:
     draw_text(Application["StateAsString"], InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["FontSize"], RAYWHITE)
-    return None
 
 
 def Build_Prompt(InterfaceDataCopy) -> None | Error:
     draw_text(Prompt["Content"], InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["FontSize"], RAYWHITE)
-    return None
 
 
 def Build_Editor(InterfaceDataCopy) -> None | Error:
     EditorRectangle = Rectangle(InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["Width"], InterfaceDataCopy["Height"])
-    LineSpace = 10
+    LineSpace:int = 10
+    Line:str
     for Line in Editor["Content"]:
         draw_text(Line, 10, LineSpace, InterfaceDataCopy["FontSize"], RAYWHITE)
         LineSpace += 20
     draw_rectangle_rounded_lines(EditorRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
-    return None
 
 
 def Toggle_Editor() -> None | Error:
@@ -66,7 +63,6 @@ def Toggle_Editor() -> None | Error:
     else:
         Editor["Exposed"] = False
         ControlFlow[0] = [lambda: Build_Frame(HomeUserInterface), "FailSafe"]
-    return None
 
 
 def Load_All_Packages() -> None | Error:
@@ -82,21 +78,24 @@ def Load_All_Packages() -> None | Error:
             ScriptContent = [Instruction for Instruction in PackageFileInstructions]
             Instructions = "\n".join(ScriptContent).replace("from Source.ExoFyle import *\n", "")
             if Handle_Error(Is_Legal_Script(Instructions)) == False: exec(Instructions)
-    return None
 
 
-def Build_Frame(InterfaceType) -> None | Error:
+def Build_Frame(InterfaceType:Dict) -> None | Error:
     begin_drawing()
     clear_background(Background["Color"])
-    FailType:str
     Rendered = []
+    Index:int
+    InterfaceData:Dict
+    InterfaceBuilder:Callable
+    FailType:str
     for Index, (InterfaceData, InterfaceBuilder, FailType) in enumerate(InterfaceType.values()):
         RenderedCount = len(Rendered)
         InterfaceDataCopy = {Key:Value for Key, Value in InterfaceData.items()}
         if InterfaceData["Resizable"] == True:
             if len(InterfaceType.values()) > 1:
+                FutureInterface:List
                 for FutureInterface in [Value for Value in InterfaceType.values()][Index+1:]:
-                    FutureInterfaceData = FutureInterface[0]
+                    FutureInterfaceData:Dict = FutureInterface[0]
                     InterfaceDataCopy["Height"] -= FutureInterfaceData["Height"]
         if InterfaceDataCopy["Y"] == None:
             InterfaceDataCopy["Y"] = Window["NaturalPadding"]
@@ -116,7 +115,6 @@ def Build_Frame(InterfaceType) -> None | Error:
             return Error("Failed to build frame because of broken content constructor.")
         Rendered.append(InterfaceDataCopy)
     end_drawing()
-    return None
 
 
 def Change_State(StateKey:int) -> None | Error:
@@ -147,7 +145,6 @@ def Input_SingleLine_Key(UserInterface, InputTree) -> None | Error:
         UserInterface["Content"] += KeyMap[Key]
     else:
         Handle_Key_Press(InputTree)
-    return None
 
 
 def Input_MultiLine_Key(InputTree) -> None | Error:
@@ -176,10 +173,11 @@ def Input_MultiLine_Key(InputTree) -> None | Error:
             Editor["CurrentLine"] -= 1
     else:
         Handle_Key_Press(InputTree)
-    return None
 
 
 def Handle_Mode_Control_Flow(ControlFlow:List[List], InputTree) -> None | Error:
+    Function:Callable
+    FailType:str
     for Function, FailType in ControlFlow:
         Handle_Error(Function, Function(InputTree), FailType)
     return ControlFlow
@@ -187,18 +185,17 @@ def Handle_Mode_Control_Flow(ControlFlow:List[List], InputTree) -> None | Error:
 
 def Handle_Key_Press(InputTree) -> None | Error | int:
     Key: int
+    Function:Callable
     KeyChord:int
     for Key, Function, KeyChord in InputTree:
         if is_key_pressed(Key):
             if KeyChord != None:
                 if is_key_down(KeyChord) == False: return Error(f"Command Requires KeyChord {KeyChord}")
             Function()
-    return None
 
 
 def Handle_Input() -> None | Error:
     Application["CurrentState"]()
-    return None
 
 
 # Handle error is to be used for core control flow error checking.
@@ -213,7 +210,6 @@ def Handle_Error(FunctionSignature, FunctionReturn, FunctionFailType) -> bool:
         if type(FunctionReturn) == Error:
             print(f"Error from {FunctionSignature}: {FunctionReturn.ErrorString}")
             if FunctionFailType == "FailFast":
-                print("FailFast activated, exiting program.")
                 Exit()
         return True
     except Exception as SomeException:
@@ -224,7 +220,6 @@ def Handle_Error(FunctionSignature, FunctionReturn, FunctionFailType) -> bool:
 def Is_Legal_Script(UserInstruction:str) -> None | Error:
     for Instruction in InvalidInstructions:
         if Instruction in UserInstruction: return Error("Illegal Script")
-    return None
 
 
 def Save_File() -> None | Error:
@@ -239,13 +234,9 @@ def Open_File() -> None | Error:
 
 
 def Handle_Control_Flow() -> None | Error:
-    Boolean:bool = True
-    Function: function
     for Function, FailType in ControlFlow:
-        Boolean = Handle_Error(Function, Function(), FailType)
-        if Boolean == False:
+        if Handle_Error(Function, Function(), FailType) == False:
             return Error(f"Control flow interrupted by {Function} error")
-    return None
 
 
 def Initialize() -> None | Error:
@@ -257,7 +248,6 @@ def Initialize() -> None | Error:
     init_window(Resolution["Width"], Resolution["Height"], Window["Title"])
     set_target_fps(Window["FPS"])
     set_window_size(Resolution["Width"], Resolution["Height"])
-    return None
 
 
 def Cleanup() -> None | Error:
@@ -315,6 +305,7 @@ StateMapping = {
     3:lambda: Handle_Mode_Control_Flow(FileNameModeControlFlow, FileNameModeInputTree),
 }
 
+
 KeyChordRoots = {
     "Leader": KEY_SPACE
 }
@@ -339,6 +330,7 @@ FileNameModeInputTree = [
     [KEY_ENTER, Submit_Command, None],
 ]
 
+
 ControlFlow = [
     [lambda: Build_Frame(HomeUserInterface), "FailSafe"],
     [Handle_Input, "FailSafe"],
@@ -356,6 +348,7 @@ FileNameModeControlFlow = [
     "",
     [lambda: Input_SingleLine_Key(FileNamePrompt, FileNameModeControlFlow), "FailSafe"]
 ]
+
 
 FileNamePrompt = {
     "Exposed": False,
@@ -406,6 +399,7 @@ Editor = {
     "Position":"Relative",
 }
 
+
 HomeUserInterface = {
     "Prompt": [Prompt, Build_Prompt, "FailFast"],
     "InfoBar": [InfoBar, Build_InfoBar, "FailFast"]
@@ -416,6 +410,7 @@ EditorUserInterface = {
     "InfoBar": [InfoBar, Build_InfoBar, "FailFast"],
 }
 Rendered = []
+
 
 KeyMap = {
     KEY_A: 'a',
@@ -522,7 +517,5 @@ KeyChordMaps = {
 
 if __name__ == '__main__':
     from sys import argv as Arguments
-    if len(Arguments) >= 2:
-        if Arguments[1] == "D":
-            Application["DeveloperMode"] = True
+    if len(Arguments) >= 2 and Arguments[1] == "D": Application["DeveloperMode"] = True
     Entry()
