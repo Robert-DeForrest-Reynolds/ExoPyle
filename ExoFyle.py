@@ -236,8 +236,14 @@ def Input_Editor_Key() -> None | str:
             LineSize = measure_text(Editor["Content"][Editor["CurrentLine"]], Editor["FontSize"])
         return None
     Key = get_key_pressed()
+    if Key == KEY_LEFT_SHIFT or Key == KEY_RIGHT_SHIFT:return None
     if Key in KeyMap.keys():
-        Editor["Content"][Editor["CurrentLine"]] += KeyMap[Key]
+        if is_key_down(KEY_LEFT_SHIFT) or is_key_down(KEY_RIGHT_SHIFT):
+            if Key in KeyChordMaps:
+                Key = KeyChordMaps[Key]
+        else:
+            Key = KeyMap[Key]
+        Editor["Content"][Editor["CurrentLine"]] += Key
         LineSize = measure_text(Editor["Content"][Editor["CurrentLine"]], Editor["FontSize"])
         if LineSize >= Editor["Width"] - 20:
             Editor["Content"].append("")
@@ -434,12 +440,12 @@ StateMapping = {
     3:FileName_Input,
 }
 
-KeyChords = {
+KeyChordRoots = {
     "Leader": KEY_SPACE
 }
 NormalModeInputTree = [
-    [KEY_R, Load_All_Packages, KeyChords["Leader"]],
-    [KEY_Q, Exit, KeyChords["Leader"]],
+    [KEY_R, Load_All_Packages, KeyChordRoots["Leader"]],
+    [KEY_Q, Exit, KeyChordRoots["Leader"]],
     [KEY_E, Toggle_Editor, None],
     [KEY_S, Save_File, None],
     [KEY_O, Open_File, None],
@@ -562,9 +568,81 @@ KeyMap = {
     KEY_X: 'x',
     KEY_Y: 'y',
     KEY_Z: 'z',
+    KEY_ZERO: '0',
+    KEY_ONE: '1',
+    KEY_TWO: '2',
+    KEY_THREE: '3',
+    KEY_FOUR: '4',
+    KEY_FIVE: '5',
+    KEY_SIX: '6',
+    KEY_SEVEN: '7',
+    KEY_EIGHT: '8',
+    KEY_NINE: '9',
     KEY_SPACE: ' ',
-    KEY_BACKSPACE: 'backspace',
+    KEY_PERIOD: '.',
+    KEY_COMMA: ',',
+    KEY_APOSTROPHE: "'",
+    KEY_SEMICOLON: ';',
+    KEY_SLASH: '/',
+    KEY_BACKSLASH: '\\',
+    KEY_LEFT_BRACKET: '[',
+    KEY_RIGHT_BRACKET: ']',
+    KEY_MINUS: '-',
+    KEY_EQUAL: '=',
+    KEY_ENTER: '\n',
+    KEY_TAB: '\t',
+    KEY_GRAVE: '`',
 }
+KeyChordMaps = {
+    KEY_NINE: "(",
+    KEY_ZERO: ")",
+    KEY_ONE: "!",
+    KEY_TWO: "@",
+    KEY_THREE: "#",
+    KEY_FOUR: "$",
+    KEY_FIVE: "%",
+    KEY_SIX: "^",
+    KEY_SEVEN: "&",
+    KEY_EIGHT: "*",
+    KEY_EQUAL: "+",
+    KEY_MINUS: "_",
+    KEY_LEFT_BRACKET: "{",
+    KEY_RIGHT_BRACKET: "}",
+    KEY_BACKSLASH: "|",
+    KEY_SEMICOLON: ":",
+    KEY_APOSTROPHE: '"',
+    KEY_COMMA: "<",
+    KEY_PERIOD: ">",
+    KEY_SLASH: "?",
+    KEY_GRAVE: "~",
+    KEY_A: "A",
+    KEY_B: "B",
+    KEY_C: "C",
+    KEY_D: "D",
+    KEY_E: "E",
+    KEY_F: "F",
+    KEY_G: "G",
+    KEY_H: "H",
+    KEY_I: "I",
+    KEY_J: "J",
+    KEY_K: "K",
+    KEY_L: "L",
+    KEY_M: "M",
+    KEY_N: "N",
+    KEY_O: "O",
+    KEY_P: "P",
+    KEY_Q: "Q",
+    KEY_R: "R",
+    KEY_S: "S",
+    KEY_T: "T",
+    KEY_U: "U",
+    KEY_V: "V",
+    KEY_W: "W",
+    KEY_X: "X",
+    KEY_Y: "Y",
+    KEY_Z: "Z",
+}
+
 # Config End #
 if __name__ == '__main__':
     from sys import argv as Arguments
