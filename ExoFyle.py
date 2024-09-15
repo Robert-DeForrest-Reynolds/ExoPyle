@@ -9,29 +9,14 @@ from os.path import join
 from sys import exit as Exit
 from asyncio import run, sleep
 
-# Here's a bit of notes #
-# A function should return None|str if error handling is necssary
-# Banner Font Type: Banner3 | I recommend: https://www.asciiart.eu/text-to-ascii-art
+
+class Error:
+    def __init__(Self, ErrorString:str) -> None: Self.ErrorString = ErrorString
 
 
-# _____                            _____ 
-#( ___ )                          ( ___ )
-# |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
-# |   |                            |   | 
-# |   |     ###    ########  ####  |   | 
-# |   |    ## ##   ##     ##  ##   |   | 
-# |   |   ##   ##  ##     ##  ##   |   | 
-# |   |  ##     ## ########   ##   |   | 
-# |   |  ######### ##         ##   |   | 
-# |   |  ##     ## ##         ##   |   | 
-# |   |  ##     ## ##        ####  |   | 
-# |   |                            |   | 
-# |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
-#(_____)                          (_____)
-
-# API Begin #
-# These Are Mostly For Quality of Life, and Ease of Use #
-def Set_Background_Color():
+def Set_Background_Color() -> None | Error:
+    if None in [Background["Red"], Background["Blue"], Background["Green"], Background["Alpha"]]:
+        Background["Color"] = Color(Background["DefaultRed"], Background["DefaultBlue"], Background["DefaultGreen"])
     Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
 
 
@@ -41,27 +26,9 @@ def Insert_User_Interface(Interface, ContentKey, InterfaceComponent):
 
 def Remove_User_Interface(Interface, ContentKey):
     Interface.pop(ContentKey)
-# API End #
-
-# _____                            _____ 
-#( ___ )                          ( ___ )
-# |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
-# |   |                            |   | 
-# |   |   ######   ##     ## ####  |   | 
-# |   |  ##    ##  ##     ##  ##   |   | 
-# |   |  ##        ##     ##  ##   |   | 
-# |   |  ##   #### ##     ##  ##   |   | 
-# |   |  ##    ##  ##     ##  ##   |   | 
-# |   |  ##    ##  ##     ##  ##   |   | 
-# |   |   ######    #######  ####  |   | 
-# |   |                            |   | 
-# |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
-#(_____)                          (_____)
-
-# A Content Constructor is just a GUI implement
 
 
-def Build_FileName_Prompt() -> None | str:
+def Build_FileName_Prompt() -> None | Error:
     PromptRectangle = Rectangle(FileNamePrompt["X"], FileNamePrompt["Y"], FileNamePrompt["Width"], FileNamePrompt["Height"])
     draw_rectangle_rounded_lines(PromptRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
     draw_rectangle(FileNamePrompt["X"], FileNamePrompt["Y"], FileNamePrompt["Width"], FileNamePrompt["Height"], Color(255, 0, 0, 0))
@@ -69,17 +36,17 @@ def Build_FileName_Prompt() -> None | str:
     return None
 
 
-def Build_InfoBar(InterfaceDataCopy) -> None | str:
+def Build_InfoBar(InterfaceDataCopy) -> None | Error:
     draw_text(Application["StateAsString"], InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["FontSize"], RAYWHITE)
     return None
 
 
-def Build_Prompt(InterfaceDataCopy) -> None | str:
+def Build_Prompt(InterfaceDataCopy) -> None | Error:
     draw_text(Prompt["Content"], InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["FontSize"], RAYWHITE)
     return None
 
 
-def Build_Editor(InterfaceDataCopy) -> None | str:
+def Build_Editor(InterfaceDataCopy) -> None | Error:
     EditorRectangle = Rectangle(InterfaceDataCopy["X"], InterfaceDataCopy["Y"], InterfaceDataCopy["Width"], InterfaceDataCopy["Height"])
     LineSpace = 10
     for Line in Editor["Content"]:
@@ -89,7 +56,7 @@ def Build_Editor(InterfaceDataCopy) -> None | str:
     return None
 
 
-def Toggle_Editor() -> None | str:
+def Toggle_Editor() -> None | Error:
     if Application["CurrentState"] == Insert_Mode: return
     if Editor["Exposed"] == False:
         Editor["Exposed"] = True
@@ -100,22 +67,7 @@ def Toggle_Editor() -> None | str:
     return None
 
 
-# _____                                                                               _____ 
-#( ___ )                                                                             ( ___ )
-# |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
-# |   |                                                                               |   | 
-# |   |  ########     ###     ######  ##    ##    ###     ######   ########  ######   |   | 
-# |   |  ##     ##   ## ##   ##    ## ##   ##    ## ##   ##    ##  ##       ##    ##  |   | 
-# |   |  ##     ##  ##   ##  ##       ##  ##    ##   ##  ##        ##       ##        |   | 
-# |   |  ########  ##     ## ##       #####    ##     ## ##   #### ######    ######   |   | 
-# |   |  ##        ######### ##       ##  ##   ######### ##    ##  ##             ##  |   | 
-# |   |  ##        ##     ## ##    ## ##   ##  ##     ## ##    ##  ##       ##    ##  |   | 
-# |   |  ##        ##     ##  ######  ##    ## ##     ##  ######   ########  ######   |   | 
-# |   |                                                                               |   | 
-# |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
-#(_____)                                                                             (_____)
-
-def Load_All_Packages() -> None | str:
+def Load_All_Packages() -> None | Error:
     print("Loading Packages")
     if Application["DeveloperMode"] == True:
         PackageDirectory = join("C", sep, "ExoFyle", "Packages")
@@ -131,23 +83,7 @@ def Load_All_Packages() -> None | str:
     return None
 
 
-# _____                                         _____ 
-#( ___ )                                       ( ___ )
-# |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
-# |   |                                         |   | 
-# |   |   ######   #######  ########  ########  |   | 
-# |   |  ##    ## ##     ## ##     ## ##        |   | 
-# |   |  ##       ##     ## ##     ## ##        |   | 
-# |   |  ##       ##     ## ########  ######    |   | 
-# |   |  ##       ##     ## ##   ##   ##        |   | 
-# |   |  ##    ## ##     ## ##    ##  ##        |   | 
-# |   |   ######   #######  ##     ## ########  |   | 
-# |   |                                         |   | 
-# |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
-#(_____)                                       (_____)
-
-
-def Build_Frame(InterfaceType) -> None | str:
+def Build_Frame(InterfaceType) -> None | Error:
     begin_drawing()
     clear_background(Background["Color"])
     FailType:str
@@ -175,19 +111,19 @@ def Build_Frame(InterfaceType) -> None | str:
         else:
             Rectangle = Handle_Error(InterfaceBuilder, InterfaceBuilder(InterfaceDataCopy), FailType)
         if Rectangle == False:
-            return "Failed to build frame because of broken content constructor."
+            return Error("Failed to build frame because of broken content constructor.")
         Rendered.append(InterfaceDataCopy)
     end_drawing()
     return None
 
 
-def Change_State(StateKey:int) -> None | str:
+def Change_State(StateKey:int) -> None | Error:
     if StateKey == 1 and Editor["Exposed"] == False: return
     Application["StateAsString"] = StateAsString[StateKey]
     Application["CurrentState"] = StateMapping[StateKey]
 
 
-def Input_FileName_Key() -> None | str:
+def Input_FileName_Key() -> None | Error:
     if is_key_down(KEY_BACKSPACE):
         if FileNamePrompt["Backspace"] == 0:return
         if FileNamePrompt["Content"] != "":
@@ -202,7 +138,7 @@ def Input_FileName_Key() -> None | str:
     return None
 
 
-def Input_Command_Key() -> None | str:
+def Input_Command_Key() -> None | Error:
     if is_key_down(KEY_BACKSPACE):
         if Prompt["Backspace"] == 0:return
         if Prompt["Content"] != "":
@@ -217,7 +153,7 @@ def Input_Command_Key() -> None | str:
     return None
 
 
-def Submit_Command() -> None | str:
+def Submit_Command() -> None | Error:
     Prompt["Content"] = ""
 
 
@@ -227,7 +163,7 @@ async def Backspace_Cooldown():
     Editor["Backspace"] = 1
 
 
-def Input_Editor_Key() -> None | str:
+def Input_Editor_Key() -> None | Error:
     if is_key_down(KEY_BACKSPACE):
         if Editor["Backspace"] == 0:return
         if Editor["Content"][Editor["CurrentLine"]] != "":
@@ -256,54 +192,57 @@ def Input_Editor_Key() -> None | str:
     return None
 
 
-def Insert_Mode() -> None | str:
+def Insert_Mode() -> None | Error:
     for Function, FailType in InsertModeControlFlow:
         Handle_Error(Function, Function(), FailType)
     return None
 
 
-def Prompt_Mode() -> None | str:
+def Prompt_Mode() -> None | Error:
     for Function, FailType in CommandModeControlFlow:
         Handle_Error(Function, Function(), FailType)
     return None
 
 
-def Normal_Mode() -> None | str:
+def Normal_Mode() -> None | Error:
     for Function, FailType in NormalModeControlFlow:
         Handle_Error(Function, Function(NormalModeInputTree), FailType)
     return None
 
 
-def FileName_Input() -> None | str:
+def FileName_Input() -> None | Error:
     for Function, FailType in FileNameModeControlFlow:
         Handle_Error(Function, Function(), FailType)
     return None
 
 
-def Handle_Key_Press(InputTree) -> None | str | int:
+def Handle_Key_Press(InputTree) -> None | Error | int:
     Key: int
     KeyChord:int
     for Key, Function, KeyChord in InputTree:
         if is_key_pressed(Key):
             if KeyChord != None:
-                if is_key_down(KeyChord) == False: return f"Command Requires KeyChord {KeyChord}"
+                if is_key_down(KeyChord) == False: return Error(f"Command Requires KeyChord {KeyChord}")
             Function()
     return None
 
 
-def Handle_Input() -> None | str:
+def Handle_Input() -> None | Error:
     Application["CurrentState"]()
+    return None
+
 
 # Handle error is to be used for core control flow error checking.
-# Anything outside of the core control flow is to be manage with None | str return.
+# Anything outside of the core control flow is to be manage with None | Error return.
 # This is to abstract away the handling of the core control flow from the user space.
 # Only the developers should have to worry about the core breaking, how, and why.
 # If a build is released with core bugs, it is on the developer to investigate, not the user.
 def Handle_Error(FunctionSignature, FunctionReturn, FunctionFailType) -> bool:
     try:
-        if FunctionReturn is not None:
-            print(f"Error from {FunctionSignature}: {FunctionReturn}")
+        if type(FunctionReturn) == Error:
+            print(f"Error from {FunctionSignature}: {FunctionReturn.ErrorString}")
             if FunctionFailType == "FailFast":
+                print("FailFast activated, exiting program.")
                 Exit()
         return True
     except Exception as SomeException:
@@ -311,49 +250,34 @@ def Handle_Error(FunctionSignature, FunctionReturn, FunctionFailType) -> bool:
         return False
 
 
-def Is_Legal_Script(UserInstruction:str) -> None | str:
+def Is_Legal_Script(UserInstruction:str) -> None | Error:
     for Instruction in InvalidInstructions:
-        if Instruction in UserInstruction: return "Illegal Script"
+        if Instruction in UserInstruction: return Error("Illegal Script")
     return None
 
 
-def Save_File() -> None | str:
-    if Editor["Exposed"] == False: return
+def Save_File() -> None | Error:
+    if Editor["Exposed"] == False: return None
     if Editor["CurrentFileName"] == None:
         EditorUserInterface.update({"FileNamePrompt":[FileNamePrompt, Build_FileName_Prompt, "FailFast"]})
         Change_State(3)
 
 
-def Open_File() -> None | str:
+def Open_File() -> None | Error:
     pass
 
 
-# _____                                                                                                               _____ 
-#( ___ )                                                                                                             ( ___ )
-# |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
-# |   |                                                                                                               |   | 
-# |   |   ######   #######  ##    ## ######## ########   #######  ##          ######## ##        #######  ##      ##  |   | 
-# |   |  ##    ## ##     ## ###   ##    ##    ##     ## ##     ## ##          ##       ##       ##     ## ##  ##  ##  |   | 
-# |   |  ##       ##     ## ####  ##    ##    ##     ## ##     ## ##          ##       ##       ##     ## ##  ##  ##  |   | 
-# |   |  ##       ##     ## ## ## ##    ##    ########  ##     ## ##          ######   ##       ##     ## ##  ##  ##  |   | 
-# |   |  ##       ##     ## ##  ####    ##    ##   ##   ##     ## ##          ##       ##       ##     ## ##  ##  ##  |   | 
-# |   |  ##    ## ##     ## ##   ###    ##    ##    ##  ##     ## ##          ##       ##       ##     ## ##  ##  ##  |   | 
-# |   |   ######   #######  ##    ##    ##    ##     ##  #######  ########    ##       ########  #######   ###  ###   |   | 
-# |   |                                                                                                               |   | 
-# |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
-#(_____)                                                                                                             (_____)
-
-def Handle_Control_Flow() -> None | str:
+def Handle_Control_Flow() -> None | Error:
     Boolean:bool = True
     Function: function
     for Function, FailType in ControlFlow:
         Boolean = Handle_Error(Function, Function(), FailType)
         if Boolean == False:
-            return f"Control flow interrupted by {Function} error"
+            return Error(f"Control flow interrupted by {Function} error")
     return None
 
 
-def Initialize() -> None | str:
+def Initialize() -> None | Error:
     set_trace_log_level(LOG_ERROR)
     print("Welcome to the thunderdome bitches.")
     Set_Background_Color()
@@ -365,7 +289,7 @@ def Initialize() -> None | str:
     return None
 
 
-def Cleanup() -> None | str:
+def Cleanup() -> None | Error:
     close_window()
 
 
@@ -376,21 +300,6 @@ def Entry():
     Handle_Error(Cleanup, Cleanup(), "FailFast")
 
 
-#  _____                                                       _____ 
-# ( ___ )                                                     ( ___ )
-#  |   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|   | 
-#  |   |                                                       |   | 
-#  |   |   ######   #######  ##    ## ######## ####  ######    |   | 
-#  |   |  ##    ## ##     ## ###   ## ##        ##  ##    ##   |   | 
-#  |   |  ##       ##     ## ####  ## ##        ##  ##         |   | 
-#  |   |  ##       ##     ## ## ## ## ######    ##  ##   ####  |   | 
-#  |   |  ##       ##     ## ##  #### ##        ##  ##    ##   |   | 
-#  |   |  ##    ## ##     ## ##   ### ##        ##  ##    ##   |   | 
-#  |   |   ######   #######  ##    ## ##       ####  ######    |   | 
-#  |   |                                                       |   | 
-#  |___|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|___| 
-# (_____)                                                     (_____)
-# Config Begin #
 InvalidInstructions = [
     "Entry()",
     "Exit()",
@@ -643,7 +552,7 @@ KeyChordMaps = {
     KEY_Z: "Z",
 }
 
-# Config End #
+
 if __name__ == '__main__':
     from sys import argv as Arguments
     if len(Arguments) >= 2:
