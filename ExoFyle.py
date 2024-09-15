@@ -4,6 +4,7 @@
 
 from raylibpy import *
 
+from typing import List
 from os import listdir as List_Directory, sep
 from os.path import join
 from sys import exit as Exit
@@ -17,7 +18,8 @@ class Error:
 def Set_Background_Color() -> None | Error:
     if None in [Background["Red"], Background["Blue"], Background["Green"], Background["Alpha"]]:
         Background["Color"] = Color(Background["DefaultRed"], Background["DefaultBlue"], Background["DefaultGreen"])
-    Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
+    else:
+        Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
 
 
 def Insert_User_Interface(Interface, ContentKey, InterfaceComponent):
@@ -57,7 +59,7 @@ def Build_Editor(InterfaceDataCopy) -> None | Error:
 
 
 def Toggle_Editor() -> None | Error:
-    if Application["CurrentState"] == Insert_Mode: return
+    if Application["CurrentState"] == InsertModeControlFlow: return
     if Editor["Exposed"] == False:
         Editor["Exposed"] = True
         ControlFlow[0] = [lambda: Build_Frame(EditorUserInterface), "FailSafe"]
@@ -123,36 +125,6 @@ def Change_State(StateKey:int) -> None | Error:
     Application["CurrentState"] = StateMapping[StateKey]
 
 
-def Input_FileName_Key() -> None | Error:
-    if is_key_down(KEY_BACKSPACE):
-        if FileNamePrompt["Backspace"] == 0:return
-        if FileNamePrompt["Content"] != "":
-            run(Backspace_Cooldown())
-            FileNamePrompt["Content"] = Editor["Content"][:-1]
-        return None
-    Key = get_key_pressed()
-    if Key in KeyMap.keys():
-        FileNamePrompt["Content"] += KeyMap[Key]
-    else:
-        Handle_Key_Press(PromptModeInputTree)
-    return None
-
-
-def Input_Command_Key() -> None | Error:
-    if is_key_down(KEY_BACKSPACE):
-        if Prompt["Backspace"] == 0:return
-        if Prompt["Content"] != "":
-            run(Backspace_Cooldown())
-            Prompt["Content"] = Prompt["Content"][:-1]
-        return None
-    Key = get_key_pressed()
-    if Key in KeyMap.keys():
-        Prompt["Content"] += KeyMap[Key]
-    else:
-        Handle_Key_Press(PromptModeInputTree)
-    return None
-
-
 def Submit_Command() -> None | Error:
     Prompt["Content"] = ""
 
@@ -163,7 +135,22 @@ async def Backspace_Cooldown():
     Editor["Backspace"] = 1
 
 
-def Input_Editor_Key() -> None | Error:
+def Input_SingleLine_Key(UserInterface, InputTree) -> None | Error:
+    if is_key_down(KEY_BACKSPACE):
+        if UserInterface["Backspace"] == 0:return
+        if UserInterface["Content"] != "":
+            run(Backspace_Cooldown())
+            UserInterface["Content"] = Editor["Content"][:-1]
+        return None
+    Key = get_key_pressed()
+    if Key in KeyMap.keys():
+        UserInterface["Content"] += KeyMap[Key]
+    else:
+        Handle_Key_Press(InputTree)
+    return None
+
+
+def Input_MultiLine_Key(InputTree) -> None | Error:
     if is_key_down(KEY_BACKSPACE):
         if Editor["Backspace"] == 0:return
         if Editor["Content"][Editor["CurrentLine"]] != "":
@@ -188,32 +175,14 @@ def Input_Editor_Key() -> None | Error:
             Editor["Content"] = Editor["Content"][:-1]
             Editor["CurrentLine"] -= 1
     else:
-        Handle_Key_Press(InsertModeInputTree)
+        Handle_Key_Press(InputTree)
     return None
 
 
-def Insert_Mode() -> None | Error:
-    for Function, FailType in InsertModeControlFlow:
-        Handle_Error(Function, Function(), FailType)
-    return None
-
-
-def Prompt_Mode() -> None | Error:
-    for Function, FailType in CommandModeControlFlow:
-        Handle_Error(Function, Function(), FailType)
-    return None
-
-
-def Normal_Mode() -> None | Error:
-    for Function, FailType in NormalModeControlFlow:
-        Handle_Error(Function, Function(NormalModeInputTree), FailType)
-    return None
-
-
-def FileName_Input() -> None | Error:
-    for Function, FailType in FileNameModeControlFlow:
-        Handle_Error(Function, Function(), FailType)
-    return None
+def Handle_Mode_Control_Flow(ControlFlow:List[List], InputTree) -> None | Error:
+    for Function, FailType in ControlFlow:
+        Handle_Error(Function, Function(InputTree), FailType)
+    return ControlFlow
 
 
 def Handle_Key_Press(InputTree) -> None | Error | int:
@@ -319,16 +288,11 @@ Background = {
     "Alpha": None,
     "Color": None,
 }
-Background.update({
-    "Red":Background["DefaultRed"],
-    "Blue":Background["DefaultBlue"],
-    "Green":Background["DefaultGreen"],
-})
 Application = {
     "DeveloperMode":False,
     "Alive":True,
     "StateAsString":"Normal",
-    "CurrentState":Normal_Mode,
+    "CurrentState":lambda: Handle_Mode_Control_Flow(NormalModeControlFlow, NormalModeInputTree),
     "Buffer":"",
 }
 Window = {
@@ -343,10 +307,10 @@ StateAsString = {
     3:"FileNameInput"
 }
 StateMapping = {
-    0:Normal_Mode,
-    1:Insert_Mode,
-    2:Prompt_Mode,
-    3:FileName_Input,
+    0:lambda: Handle_Mode_Control_Flow(NormalModeControlFlow, NormalModeInputTree),
+    1:lambda: Handle_Mode_Control_Flow(InsertModeControlFlow, InsertModeInputTree),
+    2:lambda: Handle_Mode_Control_Flow(PromptModeControlFlow, InsertModeInputTree),
+    3:lambda: Handle_Mode_Control_Flow(FileNameModeControlFlow, FileNameModeInputTree),
 }
 
 KeyChordRoots = {
@@ -378,16 +342,17 @@ ControlFlow = [
     [Handle_Input, "FailSafe"],
 ]
 InsertModeControlFlow = [
-    [Input_Editor_Key, "FailSafe"]
+    [Input_MultiLine_Key, "FailSafe"]
 ]
 NormalModeControlFlow = [
     [Handle_Key_Press, "FailSafe"]
 ]
-CommandModeControlFlow = [
-    [Input_Command_Key, "FailSafe"]
+PromptModeControlFlow = [
+    [lambda: Input_SingleLine_Key(PromptModeControlFlow, PromptModeControlFlow), "FailSafe"]
 ]
 FileNameModeControlFlow = [
-    [Input_FileName_Key, "FailSafe"]
+    "",
+    [lambda: Input_SingleLine_Key(FileNamePrompt, FileNameModeControlFlow), "FailSafe"]
 ]
 
 FileNamePrompt = {
