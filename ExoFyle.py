@@ -205,6 +205,8 @@ def Handle_Input() -> None | Error:
 # Anything outside of the core control flow is to be manage with None | Error return.
 # This is to abstract away the handling of the core control flow from the user space.
 # Only the developers should have to worry about the core breaking, how, and why.
+# Users should user the Error return value that will be caught during the core contorl flow
+#                   FailSafe = don't crash | FailFast = crash
 # If a build is released with core bugs, it is on the developer to investigate, not the user.
 def Handle_Error(FunctionSignature, FunctionReturn, FunctionFailType) -> bool:
     try:
