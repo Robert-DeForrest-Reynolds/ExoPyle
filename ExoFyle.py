@@ -1,9 +1,4 @@
-# Yo, I just need to state now, I'm really not a fan of wildcard imports, but you think I'm going to going through every function?
-# I feel like this is a very Pythonic way of pointing out that .h files suck duck feet.
-# Moving on, I guess
-
 from raylibpy import *
-
 from typing import List, Dict, Callable
 from os import listdir as List_Directory, sep
 from os.path import join
