@@ -96,7 +96,7 @@ class Call:
         _.Lambda()
 
     
-def Get(GlobalName:str):
+def Get(GlobalName:str) -> any | Error:
     Variable = globals().get(GlobalName, None)
     if Variable == None:
         return Error(Get, f"Could not find {GlobalName}")
@@ -118,7 +118,7 @@ def Build_Frame() -> Callable | Error:
     return Build_Frame
 
 
-def Handle_Key_Press(InputTree) -> Callable | Error | int:
+def Handle_Key_Press(InputTree) -> Callable | Error:
     Key: int
     Function:Call
     KeyChord:int
@@ -137,13 +137,16 @@ def Handle_Control_Flow(ControlFlow:List) -> Callable | Error:
     return Handle_Control_Flow
 
 
-def Handle_State() -> None:
-    ApplicationConfig["CurrentState"].Call()
+def Handle_State() -> Callable | Error:
+    State: Call = ApplicationConfig["CurrentState"]
+    State.Call()
+    return Handle_State
 
 
-def Change_State(StateKey:int) -> None:
+def Change_State(StateKey:int) -> Callable | Error:
     ApplicationConfig["StateAsString"] = StateAsString[StateKey]
     ApplicationConfig["CurrentState"] = StateMapping[StateKey]
+    return Change_State
 
 
 """
