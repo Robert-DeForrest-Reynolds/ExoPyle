@@ -2,15 +2,84 @@ from raylibpy import *
 from typing import List, Dict, Callable
 from sys import exit as Exit
 
+
+"""
+ _____                                         _____ 
+( ___ )---------------------------------------( ___ )
+ |   |                                         |   | 
+ |   |    #######                              |   | 
+ |   |    #       #    # ##### #####  #   #    |   | 
+ |   |    #       ##   #   #   #    #  # #     |   | 
+ |   |    #####   # #  #   #   #    #   #      |   | 
+ |   |    #       #  # #   #   #####    #      |   | 
+ |   |    #       #   ##   #   #   #    #      |   | 
+ |   |    ####### #    #   #   #    #   #      |   | 
+ |___|                                         |___| 
+(_____)---------------------------------------(_____)
+"""
+
+
+def Initialize():
+    set_trace_log_level(LOG_ERROR)
+    print("Welcome to the thunderdome bitches.")
+    Set_Background_Color()
+    Load_All_Packages()
+    set_config_flags(FLAG_BORDERLESS_WINDOWED_MODE | FLAG_WINDOW_UNDECORATED)
+    init_window(Resolution["Width"], Resolution["Height"], Window["Title"])
+    set_target_fps(Window["FPS"])
+    set_window_size(Resolution["Width"], Resolution["Height"])
+
+
+def Entry():
+    Initialize()
+    while ApplicationConfig["Alive"]:
+        Handle_Control_Flow(Get("CoreControlFlow"))
+    close_window()
+
+
+"""
+ _____                                                                _____ 
+( ___ )--------------------------------------------------------------( ___ )
+ |   |                                                                |   | 
+ |   |    ######                                                      |   | 
+ |   |    #     #   ##    ####  #    #   ##    ####  ######  ####     |   | 
+ |   |    #     #  #  #  #    # #   #   #  #  #    # #      #         |   | 
+ |   |    ######  #    # #      ####   #    # #      #####   ####     |   | 
+ |   |    #       ###### #      #  #   ###### #  ### #           #    |   | 
+ |   |    #       #    # #    # #   #  #    # #    # #      #    #    |   | 
+ |   |    #       #    #  ####  #    # #    #  ####  ######  ####     |   | 
+ |___|                                                                |___| 
+(_____)--------------------------------------------------------------(_____)
+"""
+
+
+def Load_All_Packages():
+    print("Loading Packages")
+
+
+"""
+ _____                           _____ 
+( ___ )-------------------------( ___ )
+ |   |                           |   | 
+ |   |       #    ######  ###    |   | 
+ |   |      # #   #     #  #     |   | 
+ |   |     #   #  #     #  #     |   | 
+ |   |    #     # ######   #     |   | 
+ |   |    ####### #        #     |   | 
+ |   |    #     # #        #     |   | 
+ |   |    #     # #       ###    |   | 
+ |___|                           |___| 
+(_____)-------------------------(_____)
+"""
+
+
 class Error:
-    def __init__(_, Signature:Callable, ErrorString:str) -> None:
-        print(f"ERROR: {ErrorString} FROM: {Signature}")
-        exit()
-
-
-class Warning:
-    def __init__(_, Signature:Callable, ErrorString:str) -> None:
-        print(f"WARNING: {ErrorString} FROM: {Signature}")
+    def __init__(_, Signature:Callable, ErrorString:str, Warning=False) -> None:
+        if Warning == False:
+            print(f"Error: {ErrorString} FROM: {Signature}")
+            exit()
+        else:
+            print(f"Warning: {ErrorString} FROM: {Signature}")
 
 
 class Call:
@@ -56,7 +125,7 @@ def Handle_Key_Press(InputTree) -> Callable | Error | int:
     for Key, Function, KeyChord in InputTree:
         if is_key_pressed(Key):
             if KeyChord != None:
-                if is_key_down(KeyChord) == False: return Warning(Handle_Key_Press, f"Command Requires KeyChord {KeyChord}")
+                if is_key_down(KeyChord) == False: return Error(Handle_Key_Press, f"Command Requires KeyChord {KeyChord}", Warning=True)
             Function.Call()
         return Handle_Key_Press
 
@@ -77,27 +146,20 @@ def Change_State(StateKey:int) -> None:
     ApplicationConfig["CurrentState"] = StateMapping[StateKey]
 
 
-def Load_All_Packages():
-    print("Loading Packages")
-
-
-def Initialize():
-    set_trace_log_level(LOG_ERROR)
-    print("Welcome to the thunderdome bitches.")
-    Set_Background_Color()
-    Load_All_Packages()
-    set_config_flags(FLAG_BORDERLESS_WINDOWED_MODE | FLAG_WINDOW_UNDECORATED)
-    init_window(Resolution["Width"], Resolution["Height"], Window["Title"])
-    set_target_fps(Window["FPS"])
-    set_window_size(Resolution["Width"], Resolution["Height"])
-
-
-def Entry():
-    Initialize()
-    while ApplicationConfig["Alive"]:
-        Handle_Control_Flow(Get("CoreControlFlow"))
-    close_window()
-
+"""
+ _____                                                                                        _____ 
+( ___ )--------------------------------------------------------------------------------------( ___ )
+ |   |                                                                                        |   | 
+ |   |     #####                                                                              |   | 
+ |   |    #     #  ####  #    # ###### #  ####  #    # #####    ##   ##### #  ####  #    #    |   | 
+ |   |    #       #    # ##   # #      # #    # #    # #    #  #  #    #   # #    # ##   #    |   | 
+ |   |    #       #    # # #  # #####  # #      #    # #    # #    #   #   # #    # # #  #    |   | 
+ |   |    #       #    # #  # # #      # #  ### #    # #####  ######   #   # #    # #  # #    |   | 
+ |   |    #     # #    # #   ## #      # #    # #    # #   #  #    #   #   # #    # #   ##    |   | 
+ |   |     #####   ####  #    # #      #  ####   ####  #    # #    #   #   #  ####  #    #    |   | 
+ |___|                                                                                        |___| 
+(_____)--------------------------------------------------------------------------------------(_____)
+"""
 Resolution = {
     "Width":800,
     "Height":600,
