@@ -1,62 +1,11 @@
 from raylibpy import *
 from typing import Callable
+from os import listdir
+from os.path import join
+from copy import deepcopy
 
 
-"""
- _____                                         _____ 
-( ___ )---------------------------------------( ___ )
- |   |                                         |   | 
- |   |    #######                              |   | 
- |   |    #       #    # ##### #####  #   #    |   | 
- |   |    #       ##   #   #   #    #  # #     |   | 
- |   |    #####   # #  #   #   #    #   #      |   | 
- |   |    #       #  # #   #   #####    #      |   | 
- |   |    #       #   ##   #   #   #    #      |   | 
- |   |    ####### #    #   #   #    #   #      |   | 
- |___|                                         |___| 
-(_____)---------------------------------------(_____)
-"""
-
-
-def Initialize():
-    set_trace_log_level(LOG_ERROR)
-    print("Welcome to the thunderdome bitches.")
-    Set_Background_Color()
-    Load_All_Packages()
-    set_config_flags(FLAG_BORDERLESS_WINDOWED_MODE | FLAG_WINDOW_UNDECORATED)
-    init_window(Resolution["Width"], Resolution["Height"], Window["Title"])
-    set_target_fps(Window["FPS"])
-    set_window_size(Resolution["Width"], Resolution["Height"])
-
-
-def Entry():
-    Initialize()
-    while ApplicationConfig["Alive"]:
-        Handle_Control_Flow(Get("CoreControlFlow"))
-    close_window()
-
-
-"""
- _____                                                                _____ 
-( ___ )--------------------------------------------------------------( ___ )
- |   |                                                                |   | 
- |   |    ######                                                      |   | 
- |   |    #     #   ##    ####  #    #   ##    ####  ######  ####     |   | 
- |   |    #     #  #  #  #    # #   #   #  #  #    # #      #         |   | 
- |   |    ######  #    # #      ####   #    # #      #####   ####     |   | 
- |   |    #       ###### #      #  #   ###### #  ### #           #    |   | 
- |   |    #       #    # #    # #   #  #    # #    # #      #    #    |   | 
- |   |    #       #    #  ####  #    # #    #  ####  ######  ####     |   | 
- |___|                                                                |___| 
-(_____)--------------------------------------------------------------(_____)
-"""
-
-
-def Load_All_Packages():
-    print("Loading Packages")
-
-
-"""
+"""API
  _____                           _____ 
 ( ___ )-------------------------( ___ )
  |   |                           |   | 
@@ -75,10 +24,10 @@ def Load_All_Packages():
 class Error:
     def __init__(_, Signature:Callable, ErrorString:str, Warning=False) -> None:
         if Warning == False:
-            print(f"Error: {ErrorString} FROM: {Signature}")
+            Output(f"Error: {ErrorString} FROM: {Signature}")
             exit()
         else:
-            print(f"Warning: {ErrorString} FROM: {Signature}")
+            Output(f"Warning: {ErrorString} FROM: {Signature}")
 
 
 class Call:
@@ -86,20 +35,25 @@ class Call:
         _.Function:Callable = Function
         _.ArgumentKeys:list = ArgumentKeys
 
-    def Call(_) -> None:
+    def Call(_) -> Callable:
         if _.ArgumentKeys == None:
             _.Lambda:Callable = lambda: _.Function()
         else:
             _.LambdaArguments = [Get(Argument) for Argument in _.ArgumentKeys]
             _.Lambda:Callable = lambda: _.Function(*_.LambdaArguments)
-        _.Lambda()
+        return _.Lambda()
 
     
-def Get(GlobalName:str) -> any | Error:
-    Variable:any = globals().get(GlobalName, None)
+def Get(GlobalName:str) -> object | Error:
+    Variable = globals().get(GlobalName, None)
     if Variable == None:
         return Error(Get, f"Could not find {GlobalName}")
-    return globals().get(GlobalName, None)
+    return Variable
+
+
+def Output(Message:str):
+    print(Message) # I'm tired of looking for random fucking print statements.
+                   # If I ctrl-f and find more than one print, I will fucking piledrive you. <3
 
 
 def Set_Background_Color() -> Callable | Error:
@@ -113,6 +67,7 @@ def Set_Background_Color() -> Callable | Error:
 
 def Build_Frame() -> Callable | Error:
     begin_drawing()
+    Set_Background_Color()
     clear_background(Background["Color"])
     end_drawing()
     return Build_Frame
@@ -125,9 +80,10 @@ def Handle_Key_Press(InputTree:list) -> Callable | Error:
     for Key, Function, KeyChord in InputTree:
         if is_key_pressed(Key):
             if KeyChord != None:
-                if is_key_down(KeyChord) == False: return Error(Handle_Key_Press, f"Command Requires KeyChord {KeyChord}", Warning=True)
+                if is_key_down(KeyChord) == False:
+                    return Error(Handle_Key_Press, f"Command Requires KeyChord {KeyChord}", Warning=True)
             Function.Call()
-        return Handle_Key_Press
+            return Handle_Key_Press
 
 
 def Handle_Control_Flow(ControlFlow:list) -> Callable | Error:
@@ -151,7 +107,84 @@ def Change_State(StateKey:int) -> Callable | Error:
     return Change_State
 
 
+
+"""Entry
+ _____                                         _____ 
+( ___ )---------------------------------------( ___ )
+ |   |                                         |   | 
+ |   |    #######                              |   | 
+ |   |    #       #    # ##### #####  #   #    |   | 
+ |   |    #       ##   #   #   #    #  # #     |   | 
+ |   |    #####   # #  #   #   #    #   #      |   | 
+ |   |    #       #  # #   #   #####    #      |   | 
+ |   |    #       #   ##   #   #   #    #      |   | 
+ |   |    ####### #    #   #   #    #   #      |   | 
+ |___|                                         |___| 
+(_____)---------------------------------------(_____)
 """
+
+
+def Initialize():
+    set_trace_log_level(LOG_ERROR)
+    Set_Background_Color()
+    Load_All_Packages()
+    set_config_flags(FLAG_BORDERLESS_WINDOWED_MODE | FLAG_WINDOW_UNDECORATED)
+    init_window(Resolution["Width"], Resolution["Height"], Window["Title"])
+    set_target_fps(Window["FPS"])
+    set_window_size(Resolution["Width"], Resolution["Height"])
+
+
+def Entry():
+    Initialize()
+    while ApplicationConfig["Alive"]:
+        Handle_Control_Flow(Get("CoreControlFlow"))
+    close_window()
+
+
+"""Packages
+ _____                                                                _____ 
+( ___ )--------------------------------------------------------------( ___ )
+ |   |                                                                |   | 
+ |   |    ######                                                      |   | 
+ |   |    #     #   ##    ####  #    #   ##    ####  ######  ####     |   | 
+ |   |    #     #  #  #  #    # #   #   #  #  #    # #      #         |   | 
+ |   |    ######  #    # #      ####   #    # #      #####   ####     |   | 
+ |   |    #       ###### #      #  #   ###### #  ### #           #    |   | 
+ |   |    #       #    # #    # #   #  #    # #    # #      #    #    |   | 
+ |   |    #       #    #  ####  #    # #    #  ####  ######  ####     |   | 
+ |___|                                                                |___| 
+(_____)--------------------------------------------------------------(_____)
+"""
+
+InvalidInstructions = [
+    "Entry()",
+    "Exit()",
+]
+
+
+def Is_Legal_Script(UserInstruction:str) -> bool | Error:
+    global InvalidInstructions
+    for Instruction in InvalidInstructions:
+        if Instruction in UserInstruction:
+            Error("Illegal Script", Warning=True)
+            return False
+    return True
+
+
+def Load_All_Packages():
+    Output("Loading Packages")
+    PackageDirectory = "Packages"
+    for PackageFile in listdir(PackageDirectory):
+        with open(join(PackageDirectory, PackageFile), 'r') as PackageFile:
+            PackageFileInstructions = [Line for Line in PackageFile.readlines()]
+            ScriptContent = [Instruction for Instruction in PackageFileInstructions]
+            Instructions = "\n".join(ScriptContent).replace("from Source.ExoFyle import *\n", "")
+            if Is_Legal_Script(Instructions) == True:
+                Output(f"Successfully importing: {PackageFile.name}")
+                exec(Instructions, globals())
+
+
+"""Configuration
  _____                                                                                        _____ 
 ( ___ )--------------------------------------------------------------------------------------( ___ )
  |   |                                                                                        |   | 
@@ -210,13 +243,18 @@ StateMapping = {
     3: Call(Handle_Control_Flow, ["FileNameModeControlFlow"]),
 }
 
+CoreControlFlow = [
+    Call(Build_Frame),
+    Call(Handle_State),
+]
+
+NormalModeControlFlow = [
+    Call(Handle_Key_Press, ["NormalModeInputTree"])
+]
+
 KeyChordRoots = {
     "Leader": KEY_SPACE
 }
-
-NormalModeInputTree = [
-    [KEY_Q, Call(exit), KeyChordRoots["Leader"]],
-]
 
 InsertModeInputTree = [
     [KEY_ESCAPE, Call(Change_State, [0])],
@@ -230,13 +268,8 @@ FileNameModeInputTree = [
     [KEY_ESCAPE, Call(Change_State, [0])],
 ]
 
-CoreControlFlow = [
-    Call(Build_Frame),
-    Call(Handle_State),
-]
-
-NormalModeControlFlow = [
-    Call(Handle_Key_Press, ["NormalModeInputTree"])
+NormalModeInputTree = [
+    [KEY_Q, Call(exit), KeyChordRoots["Leader"]],
 ]
 
 KeyMap = {
@@ -343,4 +376,5 @@ KeyChordMaps = {
 
 
 if __name__ == "__main__":
+    Output("Welcome to the thunderdome bitches.")
     Entry()

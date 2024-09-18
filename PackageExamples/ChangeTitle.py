@@ -1,3 +1,3 @@
 from ExoFyle import *
 
-WindowSettings["Title"] = "Charlar the Gnarlar Marlar"
+Window["Title"] = "Charlar the Gnarlar Marlar"
