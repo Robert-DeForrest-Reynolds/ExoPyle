@@ -1,6 +1,5 @@
 from raylibpy import *
-from typing import List, Dict, Callable
-from sys import exit as Exit
+from typing import Callable
 
 
 """
@@ -97,13 +96,14 @@ class Call:
 
     
 def Get(GlobalName:str) -> any | Error:
-    Variable = globals().get(GlobalName, None)
+    Variable:any = globals().get(GlobalName, None)
     if Variable == None:
         return Error(Get, f"Could not find {GlobalName}")
     return globals().get(GlobalName, None)
 
 
 def Set_Background_Color() -> Callable | Error:
+    global Background
     if None in [Background["Red"], Background["Blue"], Background["Green"], Background["Alpha"]]:
         Background["Color"] = Color(Background["DefaultRed"], Background["DefaultBlue"], Background["DefaultGreen"])
     else:
@@ -118,7 +118,7 @@ def Build_Frame() -> Callable | Error:
     return Build_Frame
 
 
-def Handle_Key_Press(InputTree) -> Callable | Error:
+def Handle_Key_Press(InputTree:list) -> Callable | Error:
     Key: int
     Function:Call
     KeyChord:int
@@ -130,7 +130,7 @@ def Handle_Key_Press(InputTree) -> Callable | Error:
         return Handle_Key_Press
 
 
-def Handle_Control_Flow(ControlFlow:List) -> Callable | Error:
+def Handle_Control_Flow(ControlFlow:list) -> Callable | Error:
     Function: Call
     for Function in ControlFlow:
         Function.Call()
@@ -138,12 +138,14 @@ def Handle_Control_Flow(ControlFlow:List) -> Callable | Error:
 
 
 def Handle_State() -> Callable | Error:
+    global ApplicationConfig
     State: Call = ApplicationConfig["CurrentState"]
     State.Call()
     return Handle_State
 
 
 def Change_State(StateKey:int) -> Callable | Error:
+    global ApplicationConfig
     ApplicationConfig["StateAsString"] = StateAsString[StateKey]
     ApplicationConfig["CurrentState"] = StateMapping[StateKey]
     return Change_State
@@ -213,7 +215,7 @@ KeyChordRoots = {
 }
 
 NormalModeInputTree = [
-    [KEY_Q, Call(Exit), KeyChordRoots["Leader"]],
+    [KEY_Q, Call(exit), KeyChordRoots["Leader"]],
 ]
 
 InsertModeInputTree = [
