@@ -25,3 +25,9 @@
  - [ ] Language Server Protocol Implement
  - [ ] Note-Taking System Implementation
  - [ ] Window Manager (an optional refactor over the simplistic default window manager, that only support a single-column vertical-box)
+
+
+
+# Rough Documentation
+
+There are 4 states by default: Normal; Insert; Prompt; 

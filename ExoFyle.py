@@ -45,10 +45,15 @@ class Call:
 
     
 def Get(GlobalName:str) -> object | Error:
-    Variable = globals().get(GlobalName, None)
+    Variable = ApplicationConfig["Globals"].get(GlobalName, None)
     if Variable == None:
         return Error(Get, f"Could not find {GlobalName}")
     return Variable
+
+
+def Add_To_Render_Cycle(ComponentBuilder:Callable) -> Callable | Error:
+    GUI.append(ComponentBuilder)
+    return Add_To_Render_Cycle
 
 
 def Output(Message:str):
@@ -59,9 +64,9 @@ def Output(Message:str):
 def Set_Background_Color() -> Callable | Error:
     global Background
     if None in [Background["Red"], Background["Blue"], Background["Green"], Background["Alpha"]]:
-        Background["Color"] = Color(Background["DefaultRed"], Background["DefaultBlue"], Background["DefaultGreen"])
+        Background["Color"] = Color(Background["DefaultRed"], Background["DefaultBlue"], Background["DefaultGreen"], Background["DefaultAlpha"])
     else:
-        Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"])
+        Background["Color"] = Color(Background["Red"], Background["Blue"], Background["Green"], Background["Alpha"])
     return Set_Background_Color
 
 
@@ -69,8 +74,21 @@ def Build_Frame() -> Callable | Error:
     begin_drawing()
     Set_Background_Color()
     clear_background(Background["Color"])
+    Component_Builder:Callable
+    for Component_Builder in GUI:
+        Component_Builder()
     end_drawing()
     return Build_Frame
+
+
+def Build_Editor() -> None | Error:
+    EditorRectangle = Rectangle(Editor["X"], Editor["Y"], Editor["Width"], Editor["Height"])
+    LineSpace:int = 10
+    Line:str
+    for Line in Editor["Content"]:
+        draw_text(Line, 10, LineSpace, Editor["FontSize"], RAYWHITE)
+        LineSpace += 20
+    draw_rectangle_rounded_lines(EditorRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
 
 
 def Handle_Key_Press(InputTree:list) -> Callable | Error:
@@ -125,6 +143,7 @@ def Change_State(StateKey:int) -> Callable | Error:
 
 
 def Initialize():
+    ApplicationConfig["Globals"] = globals()
     set_trace_log_level(LOG_ERROR)
     Set_Background_Color()
     Load_All_Packages()
@@ -182,6 +201,7 @@ def Load_All_Packages():
             if Is_Legal_Script(Instructions) == True:
                 Output(f"Successfully importing: {PackageFile.name}")
                 exec(Instructions, globals())
+                ApplicationConfig["Globals"] = globals()
 
 
 """Configuration
@@ -221,6 +241,7 @@ ApplicationConfig = {
     "StateAsString":"Normal",
     "CurrentState": Call(Handle_Control_Flow, ["NormalModeControlFlow"]),
     "Buffer":"",
+    "Globals":{},
 }
 
 Window = {
@@ -235,12 +256,16 @@ StateAsString = {
     2:"Prompt",
     3:"FileNameInput"
 }
+GUI = []
 
 StateMapping = {
     0: Call(Handle_Control_Flow, ["NormalModeControlFlow"]),
     1: Call(Handle_Control_Flow, ["InsertModeControlFlow"]),
     2: Call(Handle_Control_Flow, ["PromptModeControlFlow"]),
-    3: Call(Handle_Control_Flow, ["FileNameModeControlFlow"]),
+}
+
+KeyChordRoots = {
+    "Leader": KEY_SPACE,
 }
 
 CoreControlFlow = [
@@ -251,10 +276,6 @@ CoreControlFlow = [
 NormalModeControlFlow = [
     Call(Handle_Key_Press, ["NormalModeInputTree"])
 ]
-
-KeyChordRoots = {
-    "Leader": KEY_SPACE
-}
 
 InsertModeInputTree = [
     [KEY_ESCAPE, Call(Change_State, [0])],
@@ -270,6 +291,7 @@ FileNameModeInputTree = [
 
 NormalModeInputTree = [
     [KEY_Q, Call(exit), KeyChordRoots["Leader"]],
+    [KEY_I, Call(Add_To_Render_Cycle, ["Build_Editor"]), None],
 ]
 
 KeyMap = {
@@ -374,6 +396,20 @@ KeyChordMaps = {
     KEY_Z: "Z",
 }
 
+
+Editor = {
+    "Exposed": False,
+    "Content": [""],
+    "CurrentLine": 0,
+    "FontSize": 16,
+    "CurrentFileName": None,
+    "X": Window["NaturalPadding"]/2,
+    "Y":  Window["NaturalPadding"]/2,
+    "Width": Resolution["Width"] - Window["NaturalPadding"],
+    "Height": Resolution["Height"] - Window["NaturalPadding"],
+    "Resizable": True,
+    "Position":"Relative",
+}
 
 if __name__ == "__main__":
     Output("Welcome to the thunderdome bitches.")
