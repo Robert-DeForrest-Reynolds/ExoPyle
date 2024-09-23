@@ -2,25 +2,17 @@ from raylibpy import *
 from typing import Callable
 from os import listdir
 from os.path import join
-from copy import deepcopy
 
 
-"""API
- _____                           _____ 
-( ___ )-------------------------( ___ )
- |   |                           |   | 
- |   |       #    ######  ###    |   | 
- |   |      # #   #     #  #     |   | 
- |   |     #   #  #     #  #     |   | 
- |   |    #     # ######   #     |   | 
- |   |    ####### #        #     |   | 
- |   |    #     # #        #     |   | 
- |   |    #     # #       ###    |   | 
- |___|                           |___| 
-(_____)-------------------------(_____)
+
 """
-
-
+ _____                  _____ 
+( ___ )----------------( ___ )
+ |   |                  |   | 
+ |   |       API        |   | 
+ |___|                  |___| 
+(_____)----------------(_____)
+"""
 class Error:
     def __init__(_, Signature:Callable, ErrorString:str, Warning=False) -> None:
         if Warning == False:
@@ -51,11 +43,6 @@ def Get(GlobalName:str) -> object | Error:
     return Variable
 
 
-def Add_To_Render_Cycle(ComponentBuilder:Callable) -> Callable | Error:
-    GUI.append(ComponentBuilder)
-    return Add_To_Render_Cycle
-
-
 def Output(Message:str):
     print(Message) # I'm tired of looking for random fucking print statements.
                    # If I ctrl-f and find more than one print, I will fucking piledrive you. <3
@@ -70,6 +57,19 @@ def Set_Background_Color() -> Callable | Error:
     return Set_Background_Color
 
 
+
+"""
+ _____                  _____ 
+( ___ )----------------( ___ )
+ |   |                  |   | 
+ |   |  Frame Building  |   | 
+ |___|                  |___| 
+(_____)----------------(_____)
+"""
+def Add_To_Render_Cycle(ComponentBuilder:Callable) -> Callable | Error:
+    GUI.append(ComponentBuilder)
+    return Add_To_Render_Cycle
+
 def Build_Frame() -> Callable | Error:
     begin_drawing()
     Set_Background_Color()
@@ -81,14 +81,34 @@ def Build_Frame() -> Callable | Error:
     return Build_Frame
 
 
-def Build_Editor() -> None | Error:
-    EditorRectangle = Rectangle(Editor["X"], Editor["Y"], Editor["Width"], Editor["Height"])
-    LineSpace:int = 10
-    Line:str
-    for Line in Editor["Content"]:
-        draw_text(Line, 10, LineSpace, Editor["FontSize"], RAYWHITE)
-        LineSpace += 20
-    draw_rectangle_rounded_lines(EditorRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
+
+"""
+ _____                  _____ 
+( ___ )----------------( ___ )
+ |   |                  |   | 
+ |   |  State Handling  |   | 
+ |___|                  |___| 
+(_____)----------------(_____)
+"""
+def Handle_State() -> Callable | Error:
+    global ApplicationConfig
+    State: Call = ApplicationConfig["CurrentState"]
+    State.Call()
+    return Handle_State
+
+
+def Change_State(StateKey:int) -> Callable | Error:
+    global ApplicationConfig
+    ApplicationConfig["StateAsString"] = StateAsString[StateKey]
+    ApplicationConfig["CurrentState"] = StateMapping[StateKey]
+    return Change_State
+
+
+def Handle_Control_Flow(ControlFlow:list) -> Callable | Error:
+    Function: Call
+    for Function in ControlFlow:
+        Function.Call()
+    return Handle_Control_Flow
 
 
 def Handle_Key_Press(InputTree:list) -> Callable | Error:
@@ -104,44 +124,15 @@ def Handle_Key_Press(InputTree:list) -> Callable | Error:
             return Handle_Key_Press
 
 
-def Handle_Control_Flow(ControlFlow:list) -> Callable | Error:
-    Function: Call
-    for Function in ControlFlow:
-        Function.Call()
-    return Handle_Control_Flow
 
-
-def Handle_State() -> Callable | Error:
-    global ApplicationConfig
-    State: Call = ApplicationConfig["CurrentState"]
-    State.Call()
-    return Handle_State
-
-
-def Change_State(StateKey:int) -> Callable | Error:
-    global ApplicationConfig
-    ApplicationConfig["StateAsString"] = StateAsString[StateKey]
-    ApplicationConfig["CurrentState"] = StateMapping[StateKey]
-    return Change_State
-
-
-
-"""Entry
- _____                                         _____ 
-( ___ )---------------------------------------( ___ )
- |   |                                         |   | 
- |   |    #######                              |   | 
- |   |    #       #    # ##### #####  #   #    |   | 
- |   |    #       ##   #   #   #    #  # #     |   | 
- |   |    #####   # #  #   #   #    #   #      |   | 
- |   |    #       #  # #   #   #####    #      |   | 
- |   |    #       #   ##   #   #   #    #      |   | 
- |   |    ####### #    #   #   #    #   #      |   | 
- |___|                                         |___| 
-(_____)---------------------------------------(_____)
 """
-
-
+ _____                  _____ 
+( ___ )----------------( ___ )
+ |   |                  |   | 
+ |   |       Entry      |   | 
+ |___|                  |___| 
+(_____)----------------(_____)
+"""
 def Initialize():
     ApplicationConfig["Globals"] = globals()
     set_trace_log_level(LOG_ERROR)
@@ -160,21 +151,15 @@ def Entry():
     close_window()
 
 
-"""Packages
- _____                                                                _____ 
-( ___ )--------------------------------------------------------------( ___ )
- |   |                                                                |   | 
- |   |    ######                                                      |   | 
- |   |    #     #   ##    ####  #    #   ##    ####  ######  ####     |   | 
- |   |    #     #  #  #  #    # #   #   #  #  #    # #      #         |   | 
- |   |    ######  #    # #      ####   #    # #      #####   ####     |   | 
- |   |    #       ###### #      #  #   ###### #  ### #           #    |   | 
- |   |    #       #    # #    # #   #  #    # #    # #      #    #    |   | 
- |   |    #       #    #  ####  #    # #    #  ####  ######  ####     |   | 
- |___|                                                                |___| 
-(_____)--------------------------------------------------------------(_____)
-"""
 
+"""
+ _____                  _____ 
+( ___ )----------------( ___ )
+ |   |                  |   | 
+ |   |     Packages     |   | 
+ |___|                  |___| 
+(_____)----------------(_____)
+"""
 InvalidInstructions = [
     "Entry()",
     "Exit()",
@@ -204,19 +189,14 @@ def Load_All_Packages():
                 ApplicationConfig["Globals"] = globals()
 
 
-"""Configuration
- _____                                                                                        _____ 
-( ___ )--------------------------------------------------------------------------------------( ___ )
- |   |                                                                                        |   | 
- |   |     #####                                                                              |   | 
- |   |    #     #  ####  #    # ###### #  ####  #    # #####    ##   ##### #  ####  #    #    |   | 
- |   |    #       #    # ##   # #      # #    # #    # #    #  #  #    #   # #    # ##   #    |   | 
- |   |    #       #    # # #  # #####  # #      #    # #    # #    #   #   # #    # # #  #    |   | 
- |   |    #       #    # #  # # #      # #  ### #    # #####  ######   #   # #    # #  # #    |   | 
- |   |    #     # #    # #   ## #      # #    # #    # #   #  #    #   #   # #    # #   ##    |   | 
- |   |     #####   ####  #    # #      #  ####   ####  #    # #    #   #   #  ####  #    #    |   | 
- |___|                                                                                        |___| 
-(_____)--------------------------------------------------------------------------------------(_____)
+
+"""
+ _____                  _____ 
+( ___ )----------------( ___ )
+ |   |                  |   | 
+ |   |   Configuration  |   | 
+ |___|                  |___| 
+(_____)----------------(_____)
 """
 Resolution = {
     "Width":800,
@@ -397,6 +377,15 @@ KeyChordMaps = {
 }
 
 
+
+"""
+ _____                  _____ 
+( ___ )----------------( ___ )
+ |   |                  |   | 
+ |   |     Additives    |   | 
+ |___|                  |___| 
+(_____)----------------(_____)
+"""
 Editor = {
     "Exposed": False,
     "Content": [""],
@@ -410,6 +399,18 @@ Editor = {
     "Resizable": True,
     "Position":"Relative",
 }
+
+
+def Build_Editor() -> None | Error:
+    EditorRectangle = Rectangle(Editor["X"], Editor["Y"], Editor["Width"], Editor["Height"])
+    LineSpace:int = 10
+    Line:str
+    for Line in Editor["Content"]:
+        draw_text(Line, 10, LineSpace, Editor["FontSize"], RAYWHITE)
+        LineSpace += 20
+    draw_rectangle_rounded_lines(EditorRectangle, 0.025, 10, 2, Color(50, 255, 50, 255))
+
+
 
 if __name__ == "__main__":
     Output("Welcome to the thunderdome bitches.")
