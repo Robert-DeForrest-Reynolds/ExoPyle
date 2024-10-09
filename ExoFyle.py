@@ -70,6 +70,7 @@ def Add_To_Render_Cycle(ComponentBuilder:Callable) -> Callable | Error:
     GUI.append(ComponentBuilder)
     return Add_To_Render_Cycle
 
+
 def Build_Frame() -> Callable | Error:
     begin_drawing()
     Set_Background_Color()

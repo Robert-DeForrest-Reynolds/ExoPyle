@@ -1,0 +1,9 @@
+Include/raylib.h
+Include/raymath.h
+Include/rlgl.h
+Library/libraylib.a
+Library/libraylibdll.a
+Library/raylib.dll
+.vscode
+
+*.exe
