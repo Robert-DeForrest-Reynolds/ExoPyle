@@ -1,2 +1,5 @@
 **/.venv
 .vscode
+*raylib*
+rlgl.h
+*.exe

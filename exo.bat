@@ -1,1 +1,0 @@
-C:\ExoFyleVenv\Venv\Scripts\activate && py -B C:\ExoFyle\ExoFyle.py %* && deactivate
