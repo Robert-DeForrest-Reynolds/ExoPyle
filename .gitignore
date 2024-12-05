@@ -1,5 +1,4 @@
-**/.venv
-.vscode
-*raylib*
-rlgl.h
-*.exe
+# Godot 4+ specific ignores
+.godot/
+/android/
+*.tmp
